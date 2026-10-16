@@ -104,7 +104,8 @@ function Bubbles({
 }
 
 // ── Gravel / Substrate at bottom ──────────────────
-function Gravel({ w, d }: { w: number; d: number }) {
+function Gravel({ w, d, tankH }: { w: number; d: number; tankH: number }) {
+  const bottomY = -tankH / 2;
   const stones = useMemo(() => {
     const arr: { pos: [number, number, number]; scale: number; color: string }[] = [];
     const colors = ['#94a3b8', '#a8a29e', '#cbd5e1', '#bcaaa4', '#d6d3d1', '#78716c'];
@@ -113,7 +114,7 @@ function Gravel({ w, d }: { w: number; d: number }) {
       arr.push({
         pos: [
           (Math.random() - 0.5) * w * 0.92,
-          -0.004,
+          bottomY + 0.003,
           (Math.random() - 0.5) * d * 0.92,
         ],
         scale: 0.005 + Math.random() * 0.007,
@@ -121,12 +122,12 @@ function Gravel({ w, d }: { w: number; d: number }) {
       });
     }
     return arr;
-  }, [w, d]);
+  }, [w, d, bottomY]);
 
   return (
     <group>
       {/* Substrate base layer */}
-      <mesh position={[0, -0.008, 0]}>
+      <mesh position={[0, bottomY + 0.006, 0]}>
         <boxGeometry args={[w * 0.96, 0.012, d * 0.96]} />
         <meshStandardMaterial color="#a8a29e" roughness={1} metalness={0} />
       </mesh>
@@ -613,7 +614,7 @@ function Scene({
         <ReservoirChamber w={tankW} h={tankH} d={tankD} />
 
         {/* Gravel substrate at bottom */}
-        <Gravel w={tankW} d={tankD} />
+        <Gravel w={tankW} d={tankD} tankH={tankH} />
 
         {/* Caustics light pattern on floor */}
         <CausticsLight
