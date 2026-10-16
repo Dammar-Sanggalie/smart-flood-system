@@ -206,10 +206,10 @@ function ViewModeTabs({
   onSelectTab: (tab: ViewMode) => void;
 }) {
   const tabs: { id: ViewMode; label: string; icon: React.ElementType }[] = [
+    { id: 'all', label: 'Tampilkan Semua', icon: LayoutGrid },
     { id: 'overview', label: 'Live Digital Twin & Metrik', icon: Layers },
     { id: 'analytics', label: 'Grafik Hidrograf & Tren', icon: TrendingUp },
     { id: 'settings', label: 'Hardware & Pengaturan', icon: Settings2 },
-    { id: 'all', label: 'Tampilkan Semua', icon: LayoutGrid },
   ];
 
   return (
