@@ -56,7 +56,7 @@ export default function TankVisualization({
   }, []);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden shadow-xs">
+    <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-soft flex flex-col justify-between">
       {/* Header Bar */}
       <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-slate-200/80">
         <div className="flex items-center gap-2.5">

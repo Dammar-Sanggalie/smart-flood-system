@@ -6,12 +6,12 @@
 
 ## 1. Filosofi & Karakter Visual
 
-- **Arsitektur Informasi Bertahap (Progressive Disclosure):** Menghilangkan *cognitive overload* (tidak menumpuk puluhan angka, grafik, dan form teknis sekaligus di awal). Pengguna disajikan ringkasan eksekutif (*Executive Hero Status*) yang langsung menjawab: **"Apakah saat ini aman atau bahaya? Berapa ketinggian air sekarang?"**.
-- **Navigasi Tab Interaktif:**
-  - 🌊 **Live Digital Twin & Metrik** (Fokus utama pemantauan visual tangki 3D dan kartu metrik inti).
-  - 📈 **Grafik Hidrograf & Tren** (Fokus analisis historis fluktuasi air dari waktu ke waktu).
-  - ⚙️ **Hardware & Pengaturan** (Diagnostik koneksi jaringan, kalibrasi tangki, dan log kejadian).
-  - 🔲 **Tampilkan Semua** (Mode tampilan penuh untuk layar monitor besar/Command Center).
+- **Arsitektur Informasi Bertahap (Progressive Disclosure):** Menghilangkan *cognitive overload* (tidak menumpuk puluhan angka, grafik, dan form teknis tanpa struktur hierarkis). Pengguna disajikan ringkasan eksekutif (*Executive Hero Status*) yang langsung menjawab: **"Apakah saat ini aman atau bahaya? Berapa ketinggian air sekarang?"**.
+- **Navigasi Kategori (Default: Tampilkan Semua):**
+  - 🔲 **Tampilkan Semua** *(Default)*: Menempatkan **Digital Twin 3D Reservoir** berdampingan langsung (*side-by-side*) dengan **Hydrograph Telemetry Log** di baris teratas (2-column visual grid), diikuti kartu metrik telemetri sensor dan panel kalibrasi/log di bawahnya. Tata letak ini merupakan standar *mission-critical SCADA/IoT* agar operator langsung mengorelasikan kondisi fisik 3D aktual dengan tren grafik fluktuasi historis secara simultan.
+  - 🌊 **Live Digital Twin & Metrik**: Fokus khusus ke visualisasi tangki 3D dan 6 kartu metrik inti.
+  - 📈 **Grafik Hidrograf & Tren**: Fokus khusus ke analisis grafik time-series fluktuasi ketinggian air.
+  - ⚙️ **Hardware & Pengaturan**: Fokus kalibrasi geometri tangki, status sinyal WiFi/ESP32, dan audit trail log.
 - **Nuansa Warna Berdimensi (Soft Canvas & Elevated Pure White Cards):**
   - Background halaman menggunakan warna lembut bernuansa sejuk `bg-[#f8fafc]` (Slate-50) dengan aksen cahaya ambient.
   - Kartu komponen menggunakan elevated pure white (`bg-white`) dengan sudut membulat elegan (`rounded-2xl`), border tipis (`border-slate-200/80`), dan bayangan lembut bergradasi (`shadow-soft`).
@@ -19,7 +19,7 @@
 - **Single Unified Header:**
   - Cukup satu header bersih di bagian atas (menghapus double header/banner bertingkat).
   - Indikator simulasi demo diintegrasikan secara cerdas dalam bentuk pill badge interaktif di header utama.
-  - Logo kustom berkarakter tinggi: lambang hydro-sonar radar dengan gradasi Cyan ke Electric Blue.
+  - Logo kustom berkarakter tinggi: lambang hydro-sonar radar dengan latar cerah (*clean light aesthetic*) dan aksen gradasi Cyan ke Electric Blue.
 
 ---
 

@@ -271,7 +271,7 @@ export default function DashboardPage() {
     clearActivityLog,
   } = useTankData();
 
-  const [activeTab, setActiveTab] = useState<ViewMode>('overview');
+  const [activeTab, setActiveTab] = useState<ViewMode>('all');
 
   const handleRetry = useCallback(() => {
     window.location.reload();
@@ -425,50 +425,70 @@ export default function DashboardPage() {
 
         {/* TAB 4: ALL PANELS (Expansive Multi-column Grid) */}
         {activeTab === 'all' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in">
-            {/* Primary Visual Column (7 on lg, 8 on xl) */}
-            <div className="lg:col-span-7 xl:col-span-8 space-y-8 min-w-0">
+          <div className="space-y-8 animate-fade-in">
+            {/* Top Row: Side-by-side 3D Digital Twin & Hydrograph Telemetry Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+              <TankVisualization reading={reading} config={config} />
+              <WaterLevelChart
+                history={history}
+                warnThreshold={config?.warnThresholdPercent}
+                dangerThreshold={config?.dangerThresholdPercent}
+                heightClass="h-[360px] sm:h-[400px]"
+              />
+            </div>
+
+            {/* Middle Row: Full Telemetry Metric Cards */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Ringkasan Telemetri Sensor Real-Time
+                </h3>
+              </div>
               {reading ? (
                 <MetricGrid reading={reading} config={config} />
               ) : (
                 <WaitingBanner />
               )}
-
-              <TankVisualization reading={reading} config={config} />
-
-              <WaterLevelChart
-                history={history}
-                warnThreshold={config?.warnThresholdPercent}
-                dangerThreshold={config?.dangerThresholdPercent}
-              />
             </div>
 
-            {/* Diagnostics Column (5 on lg, 4 on xl) */}
-            <div className="lg:col-span-5 xl:col-span-4 space-y-6 min-w-0" id="config-panel">
-              <ConnectionStatus
-                mqttStatus={mqttStatus}
-                backendConnected={backendConnected}
-                lastMessageAt={lastMessageAt}
-                sseStatus={sseStatus}
-              />
+            {/* Bottom Row: Hardware Calibration & System Audit Trail */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" id="config-panel">
+              {/* Left: Configuration Form (7 cols) */}
+              <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 shadow-soft">
+                <div className="mb-5 pb-3 border-b border-slate-100 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Kalibrasi Geometri & Ambang Batas Tangki
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Sesuaikan dimensi fisik tangki dan nilai pemicu peringatan dini.
+                    </p>
+                  </div>
+                </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-soft">
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
-                  Reservoir Parameters
-                </h3>
                 {config ? (
                   <TankConfigForm config={config} onSave={updateConfig} />
                 ) : (
-                  <div className="text-center py-6 text-slate-400 text-xs">
-                    Loading configuration…
+                  <div className="text-center py-8 text-slate-400 text-xs">
+                    Memuat data konfigurasi…
                   </div>
                 )}
               </div>
 
-              <ActivityLog
-                entries={activityLog}
-                onClear={clearActivityLog}
-              />
+              {/* Right: Network Mesh & Event Logs (5 cols) */}
+              <div className="lg:col-span-5 space-y-6">
+                <ConnectionStatus
+                  mqttStatus={mqttStatus}
+                  backendConnected={backendConnected}
+                  lastMessageAt={lastMessageAt}
+                  sseStatus={sseStatus}
+                />
+
+                <ActivityLog
+                  entries={activityLog}
+                  onClear={clearActivityLog}
+                />
+              </div>
             </div>
           </div>
         )}

@@ -21,6 +21,7 @@ interface WaterLevelChartProps {
   history: SensorReading[];
   warnThreshold?: number;
   dangerThreshold?: number;
+  heightClass?: string;
 }
 
 function CustomTooltip({
@@ -75,6 +76,7 @@ export default function WaterLevelChart({
   history,
   warnThreshold,
   dangerThreshold,
+  heightClass = 'h-64 sm:h-72',
 }: WaterLevelChartProps) {
   const chartData = [...history]
     .reverse()
@@ -87,7 +89,7 @@ export default function WaterLevelChart({
     }));
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs">
+    <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-soft flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -128,7 +130,7 @@ export default function WaterLevelChart({
       {chartData.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="w-full h-60 sm:h-64">
+        <div className={`w-full ${heightClass}`}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={chartData}
