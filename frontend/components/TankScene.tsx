@@ -233,16 +233,15 @@ function WaterSurface({
 
   return (
     <mesh ref={surfaceRef} geometry={geom}>
-      <meshPhysicalMaterial
+      <meshStandardMaterial
         color={color}
         transparent
-        opacity={0.7}
-        roughness={0.02}
-        metalness={0.08}
-        transmission={0.5}
-        clearcoat={1}
-        clearcoatRoughness={0.03}
+        opacity={0.85}
+        roughness={0.05}
+        metalness={0.15}
         side={THREE.DoubleSide}
+        emissive={color}
+        emissiveIntensity={0.08}
       />
     </mesh>
   );
@@ -295,14 +294,16 @@ function WaterBody({
     <>
       <mesh ref={meshRef} position={[0, -tankH / 2, 0]}>
         <boxGeometry args={[innerW, tankH, innerD]} />
-        <meshPhysicalMaterial
+        <meshStandardMaterial
           color={waterColor}
           transparent
-          opacity={0.55}
-          roughness={0.04}
+          opacity={0.72}
+          roughness={0.1}
           metalness={0.05}
-          transmission={0.62}
           side={THREE.DoubleSide}
+          emissive={waterColor}
+          emissiveIntensity={0.06}
+          depthWrite={true}
         />
       </mesh>
       {!frozen && targetFill > 0.01 && (
