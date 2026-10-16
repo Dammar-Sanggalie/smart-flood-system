@@ -10,18 +10,8 @@ import { OrbitControls, Text, Edges } from '@react-three/drei';
 import * as THREE from 'three';
 import type { TankConfig, WaterStatus } from '@/types';
 
-// ── Water Color Palette ───────────────────────────
-const WATER_COLORS: Record<string, string> = {
-  SAFE: '#0284c7',       // Sky/Ocean Blue
-  WARNING: '#d97706',    // Amber
-  DANGER: '#e11d48',     // Rose / Red
-  UNKNOWN: '#94a3b8',    // Slate
-  INVALID: '#94a3b8',
-};
-
-function getWaterHex(status: WaterStatus): string {
-  return WATER_COLORS[status] ?? '#0284c7';
-}
+// ── Water Color (Always Consistent Ocean Blue) ────
+const WATER_COLOR = '#0284c7';
 
 // ── Water Body (Dynamic Fluid Mesh Following Sensor) ──
 function WaterBody({
@@ -29,23 +19,17 @@ function WaterBody({
   tankW,
   tankD,
   tankH,
-  status,
   frozen,
 }: {
   targetFill: number;
   tankW: number;
   tankD: number;
   tankH: number;
-  status: WaterStatus;
   frozen: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const surfaceRef = useRef<THREE.Mesh>(null);
   const currentFillRef = useRef(targetFill);
-  const colorRef = useRef(new THREE.Color(getWaterHex(status)));
-  const targetColorRef = useRef(new THREE.Color(getWaterHex(status)));
-
-  const waterColor = getWaterHex(status);
 
   // Inner water dimensions slightly inside glass walls
   const innerW = tankW * 0.98;
@@ -53,13 +37,11 @@ function WaterBody({
 
   useFrame((_, delta) => {
     if (!meshRef.current || !surfaceRef.current) return;
-    targetColorRef.current.set(getWaterHex(status));
 
     // Smoothly interpolate water level to sensor target (responsive & stable)
     if (!frozen) {
       const lerpSpeed = Math.min(delta * 4.5, 0.2);
       currentFillRef.current += (targetFill - currentFillRef.current) * lerpSpeed;
-      colorRef.current.lerp(targetColorRef.current, lerpSpeed);
     }
 
     const fill = Math.max(currentFillRef.current, 0.001);
@@ -73,22 +55,15 @@ function WaterBody({
 
     // Position top surface plane
     surfaceRef.current.position.y = surfaceY;
-
-    // Update material colors
-    const bodyMat = meshRef.current.material as THREE.MeshPhysicalMaterial;
-    bodyMat.color.copy(colorRef.current);
-
-    const surfMat = surfaceRef.current.material as THREE.MeshPhysicalMaterial;
-    surfMat.color.copy(colorRef.current);
   });
 
   return (
     <group>
-      {/* 1. Volumetric Water Body */}
+      {/* 1. Volumetric Water Body (Always Blue) */}
       <mesh ref={meshRef} position={[0, -tankH / 2, 0]}>
         <boxGeometry args={[innerW, tankH, innerD]} />
         <meshPhysicalMaterial
-          color={waterColor}
+          color={WATER_COLOR}
           transparent
           opacity={0.82}
           roughness={0.06}
@@ -99,7 +74,7 @@ function WaterBody({
         />
       </mesh>
 
-      {/* 2. Distinct Water Top Surface Plane */}
+      {/* 2. Distinct Water Top Surface Plane (Always Blue) */}
       <mesh
         ref={surfaceRef}
         position={[0, -tankH / 2 + 0.01, 0]}
@@ -107,7 +82,7 @@ function WaterBody({
       >
         <planeGeometry args={[innerW, innerD]} />
         <meshPhysicalMaterial
-          color={waterColor}
+          color={WATER_COLOR}
           transparent
           opacity={0.92}
           roughness={0.03}
@@ -452,13 +427,12 @@ function Scene({
         {/* 100% Transparent Optical Reservoir Glass Chamber */}
         <ReservoirChamber w={tankW} h={tankH} d={tankD} />
 
-        {/* Dynamic Water Body Directly Driven by Sensor Height */}
+        {/* Dynamic Water Body Directly Driven by Sensor Height (Always Blue) */}
         <WaterBody
           targetFill={targetFill}
           tankW={tankW}
           tankD={tankD}
           tankH={tankH}
-          status={status}
           frozen={frozen}
         />
 
