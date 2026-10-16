@@ -11,16 +11,18 @@ import * as THREE from 'three';
 import type { TankConfig, WaterStatus } from '@/types';
 
 // ── Water Color Palette ───────────────────────────
+// Always blue — water color does not change with status
+const WATER_BLUE = '#0284c7';
 const WATER_COLORS: Record<string, string> = {
-  SAFE: '#0284c7',       // Sky/Ocean Blue
-  WARNING: '#d97706',    // Amber
-  DANGER: '#e11d48',     // Rose / Red
-  UNKNOWN: '#94a3b8',    // Slate
-  INVALID: '#94a3b8',
+  SAFE: WATER_BLUE,
+  WARNING: WATER_BLUE,
+  DANGER: WATER_BLUE,
+  UNKNOWN: WATER_BLUE,
+  INVALID: WATER_BLUE,
 };
 
-function getWaterHex(status: WaterStatus): string {
-  return WATER_COLORS[status] ?? '#0284c7';
+function getWaterHex(_status: WaterStatus): string {
+  return WATER_BLUE;
 }
 
 // ── Rising Bubbles ─────────────────────────────────
@@ -283,7 +285,7 @@ function WaterBody({
     meshRef.current.scale.y = waterHeight / tankH;
     meshRef.current.position.y = -tankH / 2 + waterHeight / 2;
 
-    const mat = meshRef.current.material as THREE.MeshPhysicalMaterial;
+    const mat = meshRef.current.material as THREE.MeshStandardMaterial;
     mat.color.copy(colorRef.current);
   });
 
@@ -364,69 +366,59 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
       {/* Front Optical Glass */}
       <mesh position={[0, 0, d / 2]}>
         <boxGeometry args={[w, h, t]} />
-        <meshPhysicalMaterial
-          color="#f8fafc"
+        <meshStandardMaterial
+          color="#bae6fd"
           transparent
-          opacity={0.1}
-          roughness={0.02}
-          metalness={0}
-          transmission={0.96}
-          ior={1.45}
+          opacity={0.08}
+          roughness={0.05}
+          metalness={0.1}
           side={THREE.DoubleSide}
+          depthWrite={false}
         />
       </mesh>
       {/* Back Glass */}
       <mesh position={[0, 0, -d / 2]}>
         <boxGeometry args={[w, h, t]} />
-        <meshPhysicalMaterial
-          color="#f8fafc"
+        <meshStandardMaterial
+          color="#bae6fd"
           transparent
-          opacity={0.1}
-          roughness={0.02}
-          metalness={0}
-          transmission={0.96}
-          ior={1.45}
+          opacity={0.08}
+          roughness={0.05}
+          metalness={0.1}
           side={THREE.DoubleSide}
+          depthWrite={false}
         />
       </mesh>
       {/* Left Glass */}
       <mesh position={[-w / 2, 0, 0]}>
         <boxGeometry args={[t, h, d]} />
-        <meshPhysicalMaterial
-          color="#f8fafc"
+        <meshStandardMaterial
+          color="#bae6fd"
           transparent
-          opacity={0.1}
-          roughness={0.02}
-          metalness={0}
-          transmission={0.96}
-          ior={1.45}
+          opacity={0.08}
+          roughness={0.05}
+          metalness={0.1}
           side={THREE.DoubleSide}
+          depthWrite={false}
         />
       </mesh>
       {/* Right Glass */}
       <mesh position={[w / 2, 0, 0]}>
         <boxGeometry args={[t, h, d]} />
-        <meshPhysicalMaterial
-          color="#f8fafc"
+        <meshStandardMaterial
+          color="#bae6fd"
           transparent
-          opacity={0.1}
-          roughness={0.02}
-          metalness={0}
-          transmission={0.96}
-          ior={1.45}
+          opacity={0.08}
+          roughness={0.05}
+          metalness={0.1}
           side={THREE.DoubleSide}
+          depthWrite={false}
         />
       </mesh>
 
       {/* Reservoir Base Plate (Brushed Titanium / Satin Steel) */}
       <mesh position={[0, -h / 2 - 0.008, 0]}>
         <boxGeometry args={[w + 0.04, 0.016, d + 0.04]} />
-        <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
-      </mesh>
-
-      {/* Top Frame Rim */}
-      <mesh position={[0, h / 2 + 0.005, 0]}>
-        <boxGeometry args={[w + 0.03, 0.01, d + 0.03]} />
         <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
       </mesh>
 
