@@ -1,116 +1,78 @@
 # Smart Flood Detection System — Frontend Design System
 
-> Dokumen spesifikasi desain frontend untuk memastikan tampilan dashboard tetap konsisten, profesional, bersih, dan berstandar enterprise IoT.
+> Dokumen spesifikasi desain frontend untuk memastikan tampilan dashboard tetap konsisten, profesional, bersih, tidak sesak, dan berstandar enterprise IoT.
 
 ---
 
 ## 1. Filosofi & Karakter Visual
 
-- **Dominan Putih & Bersih (Luminous White Canvas):** Menghilangkan kesan "AI template" yang biasanya penuh warna-warni berlebihan, gradasi murahan, dan badge badge tebal. Dashboard didesain bernuansa ruang kerja teknik/engineering modern (seperti Vercel, Linear, Apple, Stripe, dan Grafana Next).
-- **Presisi Engineering & Telemetri:** Mengutamakan tipografi data tabular (`font-mono`, `tabular-nums`), garis pembatas tipis 1px (`border-slate-200/80`), dan tata letak modular dengan hierarki informasi yang teratur.
-- **Warna Aksen Semantik yang Matang:** Menggunakan aksen warna fungsional yang lembut namun tegas (Emerald untuk aman, Amber untuk waspada, Rose untuk bahaya, dan Sky/Cyan untuk air & teknologi), bukan warna neon yang melelahkan mata.
-- **Digital Twin 3D Realistis:** Visualisasi tangki 3D disajikan sebagai model laboratorium/industri presisi tinggi dengan kaca optik transparan, skala graduasi pengukuran laser, dan studio lighting netral, bukan model kartun atau akuarium mainan.
+- **Arsitektur Informasi Bertahap (Progressive Disclosure):** Menghilangkan *cognitive overload* (tidak menumpuk puluhan angka, grafik, dan form teknis sekaligus di awal). Pengguna disajikan ringkasan eksekutif (*Executive Hero Status*) yang langsung menjawab: **"Apakah saat ini aman atau bahaya? Berapa ketinggian air sekarang?"**.
+- **Navigasi Tab Interaktif:**
+  - 🌊 **Live Digital Twin & Metrik** (Fokus utama pemantauan visual tangki 3D dan kartu metrik inti).
+  - 📈 **Grafik Hidrograf & Tren** (Fokus analisis historis fluktuasi air dari waktu ke waktu).
+  - ⚙️ **Hardware & Pengaturan** (Diagnostik koneksi jaringan, kalibrasi tangki, dan log kejadian).
+  - 🔲 **Tampilkan Semua** (Mode tampilan penuh untuk layar monitor besar/Command Center).
+- **Nuansa Warna Berdimensi (Soft Canvas & Elevated Pure White Cards):**
+  - Background halaman menggunakan warna lembut bernuansa sejuk `bg-[#f8fafc]` (Slate-50) dengan aksen cahaya ambient.
+  - Kartu komponen menggunakan elevated pure white (`bg-white`) dengan sudut membulat elegan (`rounded-2xl`), border tipis (`border-slate-200/80`), dan bayangan lembut bergradasi (`shadow-soft`).
+  - Menghilangkan kesan monoton "serba putih datar" dengan variasi aksen warna yang kaya dan terkurasi (Sky Blue, Indigo, Cyan, Emerald, Amber, dan Slate).
+- **Single Unified Header:**
+  - Cukup satu header bersih di bagian atas (menghapus double header/banner bertingkat).
+  - Indikator simulasi demo diintegrasikan secara cerdas dalam bentuk pill badge interaktif di header utama.
+  - Logo kustom berkarakter tinggi: lambang hydro-sonar radar dengan gradasi Cyan ke Electric Blue.
 
 ---
 
 ## 2. Palet Warna (Color Palette)
 
-### 2.1 Background & Kartu (Dominan Putih)
+### 2.1 Background & Kartu
 | Token | Nilai Hex | Penggunaan |
 |---|---|---|
-| `bg-page` | `#FFFFFF` | Background utama seluruh halaman (pure white) |
-| `bg-card` | `#FFFFFF` | Background kartu komponen dengan elevasi halus |
-| `bg-card-subtle` | `#F8FAFC` | Sub-panel, header tabel, dan area input dalam kartu |
-| `bg-hover` | `#F1F5F9` | Hover state tombol dan item list |
+| `bg-page` | `#F8FAFC` | Latar belakang kanvas seluruh dashboard |
+| `bg-card` | `#FFFFFF` | Background kartu utama (elevated pure white) |
+| `bg-card-subtle` | `#F1F5F9` | Sub-panel, header tabel, dan area input |
+| `bg-hover` | `#F8FAFC` | Hover state tombol dan item list |
 
-### 2.2 Border & Pembatas
-| Token | Nilai Hex | Penggunaan |
+### 2.2 Border & Bayangan
+| Token | Definisi | Penggunaan |
 |---|---|---|
-| `border-subtle` | `#F1F5F9` | Pembatas garis dalam atau baris tabel |
-| `border-default` | `#E2E8F0` | Border standar kartu dan input (1px) |
-| `border-strong` | `#CBD5E1` | Garis fokus, divider aktif, dan outline tertekan |
+| `border-slate-200/80` | `rgba(226, 232, 240, 0.8)` | Garis batas kartu dan input field (1px) |
+| `shadow-soft` | `0 2px 15px -3px rgba(0,0,0,0.04)` | Elevasi standar kartu komponen |
+| `shadow-elevated` | `0 10px 30px -5px rgba(0,0,0,0.06)` | Popover, modal, dan kartu aktif |
 
-### 2.3 Tipografi & Teks
-| Token | Nilai Hex | Penggunaan |
-|---|---|---|
-| `text-primary` | `#0F172A` (Slate-900) | Judul utama, angka metrik besar, label aktif |
-| `text-secondary` | `#475569` (Slate-600) | Label kartu, deskripsi, nilai sekunder |
-| `text-muted` | `#94A3B8` (Slate-400) | Satuan unit, timestamp, placeholder, hint |
-| `text-faint` | `#CBD5E1` (Slate-300) | Ikon non-aktif, grid chart, garis bantu |
-
-### 2.4 Status Semantik (Air & Koneksi)
-| Status | Text Color | Dot / Badge Bg | Border |
+### 2.3 Status Semantik Air & Bahaya Banjir
+| Status | Warna Teks | Badge Bg & Border | Aksen Dot |
 |---|---|---|---|
-| **SAFE (Aman)** | `#059669` (Emerald-600) | `#ECFDF5` (Emerald-50) | `#A7F3D0` (Emerald-200) |
-| **WARNING (Waspada)** | `#D97706` (Amber-600) | `#FFFBEB` (Amber-50) | `#FDE68A` (Amber-200) |
-| **DANGER (Bahaya/Banjir)** | `#E11D48` (Rose-600) | `#FFF1F2` (Rose-50) | `#FECDD3` (Rose-200) |
-| **INVALID / STALE** | `#64748B` (Slate-500) | `#F1F5F9` (Slate-100) | `#E2E8F0` (Slate-200) |
-| **CONNECTED / LIVE** | `#0284C7` (Sky-600) | `#F0F9FF` (Sky-50) | `#BAE6FD` (Sky-200) |
+| **SAFE (Aman)** | `#065F46` (Emerald-800) | `bg-emerald-50 border-emerald-200` | `#10B981` (Emerald-500) |
+| **WARNING (Waspada)** | `#92400E` (Amber-800) | `bg-amber-50 border-amber-200` | `#F59E0B` (Amber-500) |
+| **DANGER (Kritis/Bahaya)** | `#9F1239` (Rose-800) | `bg-rose-50 border-rose-200` | `#E11D48` (Rose-600) |
+| **STALE / INVALID** | `#334155` (Slate-700) | `bg-slate-100 border-slate-200` | `#94A3B8` (Slate-400) |
+
+### 2.4 Aksen Kategori Metrik
+| Kategori | Background Ikon | Warna Ikon |
+|---|---|---|
+| **Water Level** | `bg-sky-50 border-sky-200/80` | `#0284C7` (Sky-600) |
+| **Fill Capacity** | `bg-indigo-50 border-indigo-200/80` | `#4F46E5` (Indigo-600) |
+| **Surface Clearance** | `bg-cyan-50 border-cyan-200/80` | `#0891B2` (Cyan-600) |
+| **Water Volume** | `bg-blue-50 border-blue-200/80` | `#2563EB` (Blue-600) |
+| **Reservoir Size** | `bg-slate-100 border-slate-200` | `#475569` (Slate-600) |
 
 ---
 
-## 3. Tipografi
+## 3. Tipografi & Hierarki Teks
 
-- **Font Utama (Sans-serif):** `Inter`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `sans-serif`
-  - Body text: 13px / 14px dengan letter-spacing normal.
-  - Heading: 14px s.d. 18px semi-bold (`font-semibold` / `tracking-tight`).
-- **Font Telemetri (Monospace):** `SFMono-Regular`, `JetBrains Mono`, `Menlo`, `monospace`
-  - Angka metrik (cm, %, volume, distance): `font-mono tracking-tight font-bold tabular-nums`.
-  - ID Perangkat, timestamp, dan serial payload: `font-mono text-xs`.
-
----
-
-## 4. Komponen & Pedoman Desain
-
-### 4.1 Header Dashboard
-- Latar belakang putih dengan garis batas bawah 1px (`border-b border-slate-200/80`).
-- Logo/Brand mark sederhana berbentuk droplet geometris dengan aksen Cyan/Sky halus.
-- Telemetri status IoT: Indikator titik berkedip halus (*soft pulse ring*) untuk koneksi MQTT dan status backend live.
-- Badge status mode (LIVE vs DEMO) dengan warna netral terukur.
-
-### 4.2 Kartu Metrik (Metric Cards)
-- Background putih bersih, rounded-xl (12px), border 1px `border-slate-200/80`, bayangan sangat lembut (`shadow-xs` / `shadow-[0_1px_2px_rgba(0,0,0,0.03)]`).
-- Label huruf kapital kecil (`text-[11px] font-medium tracking-wider text-slate-500 uppercase`).
-- Nilai utama besar dan tegas dengan font mono tabular (`text-2xl font-bold font-mono text-slate-900`).
-- Satuan unit diletakkan di samping nilai dengan warna abu-abu netral (`text-sm font-medium text-slate-400`).
-- Indikator status berupa strip mikro atau pill minimalis yang rapi di pojok atas, bukan border samping yang mencolok.
-
-### 4.3 Visualisasi 3D Tangki (Precision Reservoir)
-- Latar canvas studio putih netral bersih (menghilangkan gradasi biru neon).
-- Dinding tangki kaca optik tipis dengan transmisi tinggi dan edge line halus.
-- Tangga skala ukuran (graduated measurement tick marks) dengan angka level air (0%, 25%, 50%, 75%, 100%) tercetak presisi di sisi tangki.
-- Sensor HC-SR04 terpasang rapi di atas dengan garis berkas ultrasonik tipis ke permukaan air.
-- Permukaan air memiliki animasi ripple halus yang realistis dan warna dinamis sesuai status peringatan.
-- Kontrol kamera 3D responsif (orbit rotation, auto-rotate lambat yang elegan).
-
-### 4.4 Grafik Riwayat (Telemetry Chart)
-- Background kartu putih dengan padding yang lega.
-- Area chart dengan gradasi linear halus dari warna air transparan menuju putih.
-- Garis grid horizontal tipis titik-titik (`stroke="#E2E8F0" strokeDasharray="3 3"`), tanpa garis vertikal berlebih.
-- Garis ambang batas peringatan (*Warning*) dan bahaya (*Danger*) menggunakan garis putus-putus tipis yang elegan.
-- Custom tooltip melayang berlatar putih dengan bayangan lembut dan sudut membulat.
-
-### 4.5 Panel Konfigurasi & Status Koneksi
-- Menggunakan input field bernuansa clean putih (`bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500`).
-- Slider dan bar pratinjau kapasitas tangki yang proporsional.
-- Tombol aksi utama (*primary button*) menggunakan solid dark-slate/sky elegan dengan transisi hover halus.
+- **Sans-serif (UI & Narasi):** `Inter`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `sans-serif`
+  - Judul: Bold / Extrabold dengan `tracking-tight`.
+  - Body: Teks abu-abu netral (`text-slate-600` / `text-slate-500`).
+- **Monospace Tabular (Data Sensor):** `JetBrains Mono`, `SFMono-Regular`, `Menlo`, `monospace`
+  - Angka metrik (cm, %, liter): `font-mono tabular-nums font-extrabold`. Mencegah angka bergeser saat live stream diperbarui.
 
 ---
 
-## 5. Aturan Layout & Spacing
+## 4. Struktur Tata Letak (Layout & Spacing)
 
-- **Container Utama:** Lebar maksimal 1600px dengan padding horizontal responsif (`px-4 sm:px-6 lg:px-8`).
-- **Sistem Grid:**
-  - Desktop (>1024px): 3 Kolom (2 Kolom kiri untuk Metrik, 3D View, dan Chart; 1 Kolom kanan untuk Koneksi, Pengaturan Tangki, dan Log).
-  - Tablet & Mobile: Responsif bertumpuk 1 kolom vertikal yang teratur.
-- **Konsistensi Jarak:** Jarak antar elemen menggunakan kelipatan 4px/8px (`gap-4`, `gap-5`, `space-y-4`).
-
----
-
-## 6. Checklist Kepatuhan Frontend
-Setiap perubahan komponen di masa mendatang harus memenuhi kriteria berikut:
-- [x] Latar belakang utama tetap dominan putih bersih.
-- [x] Tidak menggunakan badge neon atau border berwarna tebal yang berlebihan.
-- [x] Nilai telemetri sensor menggunakan angka tabular monospace.
-- [x] Animasi halus dan tidak mengganggu performa rendering 3D.
-- [x] Tampilan mobile responsif dan bebas horizontal overflow.
+- **Margin & Padding yang Lega:** Container berjarak `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8`. Tidak lagi mepet atau berdesakan.
+- **Kartu Memiliki Sudut Halus:** `rounded-2xl` (16px) dengan padding lapang `p-5 sm:p-7`.
+- **Kompatibilitas Backend & Hardware:**
+  - Layout frontend 100% independen dari backend Go dan firmware ESP32.
+  - Perubahan UI tidak mengubah payload MQTT, REST endpoint `/api/readings`, maupun stream SSE.

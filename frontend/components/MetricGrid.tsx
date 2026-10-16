@@ -32,8 +32,22 @@ export default function MetricGrid({ reading, config }: MetricGridProps) {
 
   const status = reading?.calculatedStatus ?? 'UNKNOWN';
 
+  // Dynamic status icon colors
+  const statusIconBg =
+    status === 'DANGER'
+      ? 'bg-rose-50 border-rose-200'
+      : status === 'WARNING'
+      ? 'bg-amber-50 border-amber-200'
+      : 'bg-emerald-50 border-emerald-200';
+  const statusIconColor =
+    status === 'DANGER'
+      ? 'text-rose-600'
+      : status === 'WARNING'
+      ? 'text-amber-600'
+      : 'text-emerald-600';
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
       {/* 1. Water Level */}
       <MetricCard
         label="Water Level"
@@ -42,6 +56,8 @@ export default function MetricGrid({ reading, config }: MetricGridProps) {
         icon={Droplets}
         status={status}
         isInvalid={showInvalid}
+        iconBgClass="bg-sky-50 border-sky-200/80"
+        iconColorClass="text-sky-600"
         subtext={
           config
             ? `Target Depth: ${config.depthCm} cm`
@@ -58,6 +74,8 @@ export default function MetricGrid({ reading, config }: MetricGridProps) {
         status={status}
         isInvalid={showInvalid}
         progressPercent={reading?.fillPercentage}
+        iconBgClass="bg-indigo-50 border-indigo-200/80"
+        iconColorClass="text-indigo-600"
         subtext={
           reading && !showInvalid
             ? `${formatNumber(reading.fillPercentage, 0)}% of total volume`
@@ -65,14 +83,16 @@ export default function MetricGrid({ reading, config }: MetricGridProps) {
         }
       />
 
-      {/* 3. Sensor Distance */}
+      {/* 3. Surface Clearance */}
       <MetricCard
         label="Surface Clearance"
         value={formatNumber(reading?.distanceCm, 1)}
         unit="cm"
         icon={Ruler}
         isInvalid={showInvalid}
-        subtext={reading ? `Sensor HC-SR04: ${reading.deviceId}` : undefined}
+        iconBgClass="bg-cyan-50 border-cyan-200/80"
+        iconColorClass="text-cyan-600"
+        subtext={reading ? `Sensor HC-SR04` : undefined}
       />
 
       {/* 4. Current Volume */}
@@ -82,9 +102,11 @@ export default function MetricGrid({ reading, config }: MetricGridProps) {
         unit="L"
         icon={FlaskConical}
         isInvalid={showInvalid}
+        iconBgClass="bg-blue-50 border-blue-200/80"
+        iconColorClass="text-blue-600"
         subtext={
           capacity && reading?.volumeLiters
-            ? `${formatNumber(capacity - reading.volumeLiters, 1)} L remaining`
+            ? `${formatNumber(capacity - reading.volumeLiters, 1)} L space left`
             : undefined
         }
       />
@@ -95,6 +117,8 @@ export default function MetricGrid({ reading, config }: MetricGridProps) {
         value={capacity !== null ? formatNumber(capacity, 1) : '—'}
         unit="L"
         icon={Database}
+        iconBgClass="bg-slate-100 border-slate-200"
+        iconColorClass="text-slate-600"
         subtext={
           config
             ? `${config.lengthCm} × ${config.widthCm} × ${config.depthCm} cm`
@@ -104,16 +128,18 @@ export default function MetricGrid({ reading, config }: MetricGridProps) {
 
       {/* 6. Flood Risk Status */}
       <MetricCard
-        label="System Status"
+        label="Flood Risk State"
         value={showInvalid ? (isStale ? 'STALE' : 'INVALID') : status}
         icon={ShieldAlert}
         status={showInvalid ? 'INVALID' : status}
         isInvalid={false}
         highlight={status === 'DANGER'}
+        iconBgClass={statusIconBg}
+        iconColorClass={statusIconColor}
         subtext={
           reading?.uptimeSeconds
             ? `Uptime: ${Math.floor(reading.uptimeSeconds / 3600)}h ${Math.floor((reading.uptimeSeconds % 3600) / 60)}m`
-            : 'Monitoring active'
+            : 'Watchdog active'
         }
       />
     </div>

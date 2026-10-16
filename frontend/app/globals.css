@@ -6,11 +6,11 @@
 @layer base {
   html {
     color-scheme: light;
-    background-color: #ffffff;
+    background-color: #f8fafc;
   }
 
   body {
-    background-color: #ffffff;
+    background-color: #f8fafc;
     color: #0f172a;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "calt", "tnum";
     -webkit-font-smoothing: antialiased;
@@ -33,12 +33,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
+  background: #94a3b8;
 }
 
 /* ── Utilities ────────────────────────────────────── */
@@ -51,10 +51,10 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Ultra-crisp card styling */
-  .clean-card {
+  /* Rich subtle elevation card */
+  .elevated-card {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 6px 16px -4px rgba(0, 0, 0, 0.03);
   }
 }
