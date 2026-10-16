@@ -382,9 +382,10 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
         </mesh>
       ))}
 
-      {/* Subtle edge guide */}
+      {/* Subtle edge guide — transparent box, only edges visible */}
       <mesh>
         <boxGeometry args={[w, h, d]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         <Edges color="#38bdf8" lineWidth={1} />
       </mesh>
     </group>
