@@ -9,8 +9,10 @@ dist/
 build/
 
 *.db
+*.db-*
 *.sqlite
 *.sqlite3
+backend/data/
 
 *.log
 Thumbs.db
