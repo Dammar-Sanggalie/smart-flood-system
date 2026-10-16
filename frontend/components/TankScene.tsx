@@ -107,18 +107,19 @@ function Bubbles({
 function Gravel({ w, d, tankH }: { w: number; d: number; tankH: number }) {
   const bottomY = -tankH / 2;
   const stones = useMemo(() => {
-    const arr: { pos: [number, number, number]; scale: number; color: string }[] = [];
-    const colors = ['#94a3b8', '#a8a29e', '#cbd5e1', '#bcaaa4', '#d6d3d1', '#78716c'];
-    const count = Math.floor((w * d) / 0.0025);
+    const arr: { pos: [number, number, number]; scale: number; color: string; rot: [number, number, number] }[] = [];
+    const colors = ['#94a3b8', '#a8a29e', '#cbd5e1', '#bcaaa4', '#d6d3d1', '#78716c', '#8b7d6b'];
+    const count = Math.floor((w * d) / 0.006);
     for (let i = 0; i < count; i++) {
       arr.push({
         pos: [
-          (Math.random() - 0.5) * w * 0.92,
-          bottomY + 0.003,
-          (Math.random() - 0.5) * d * 0.92,
+          (Math.random() - 0.5) * w * 0.9,
+          bottomY + 0.008,
+          (Math.random() - 0.5) * d * 0.9,
         ],
-        scale: 0.005 + Math.random() * 0.007,
+        scale: 0.012 + Math.random() * 0.014,
         color: colors[Math.floor(Math.random() * colors.length)],
+        rot: [Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI],
       });
     }
     return arr;
@@ -126,16 +127,11 @@ function Gravel({ w, d, tankH }: { w: number; d: number; tankH: number }) {
 
   return (
     <group>
-      {/* Substrate base layer */}
-      <mesh position={[0, bottomY + 0.006, 0]}>
-        <boxGeometry args={[w * 0.96, 0.012, d * 0.96]} />
-        <meshStandardMaterial color="#a8a29e" roughness={1} metalness={0} />
-      </mesh>
-      {/* Individual stones */}
+      {/* Individual stones sitting at the bottom */}
       {stones.map((s, i) => (
-        <mesh key={i} position={s.pos} scale={s.scale}>
+        <mesh key={i} position={s.pos} scale={s.scale} rotation={s.rot}>
           <dodecahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={s.color} roughness={0.9} />
+          <meshStandardMaterial color={s.color} roughness={0.85} metalness={0.05} />
         </mesh>
       ))}
     </group>
