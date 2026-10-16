@@ -13,7 +13,7 @@ import type { TankConfig, WaterStatus } from '@/types';
 // ── Water Color (Always Consistent Ocean Blue) ────
 const WATER_COLOR = '#0284c7';
 
-// ── Water Body (Dynamic Fluid Mesh Following Sensor) ──
+// ── Water Body (Dynamic Fluid Mesh Following Sensor with Gentle Wave Motion) ──
 function WaterBody({
   targetFill,
   tankW,
@@ -29,7 +29,11 @@ function WaterBody({
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const surfaceRef = useRef<THREE.Mesh>(null);
+  const planeGeomRef = useRef<THREE.PlaneGeometry>(null);
   const currentFillRef = useRef(targetFill);
+  const prevTargetFillRef = useRef(targetFill);
+  const waveEnergyRef = useRef(0.1);
+  const timeRef = useRef(0);
 
   // Inner water dimensions slightly inside glass walls
   const innerW = tankW * 0.98;
@@ -38,9 +42,27 @@ function WaterBody({
   useFrame((_, delta) => {
     if (!meshRef.current || !surfaceRef.current) return;
 
+    const dt = Math.min(delta, 0.05);
+    timeRef.current += dt;
+
+    // Detect if water level is actively changing
+    const fillDiff = Math.abs(targetFill - currentFillRef.current);
+    const targetDiff = Math.abs(targetFill - prevTargetFillRef.current);
+    prevTargetFillRef.current = targetFill;
+
+    // Surge wave energy when water is actively moving up or down
+    if (!frozen && (fillDiff > 0.001 || targetDiff > 0.001)) {
+      waveEnergyRef.current = Math.min(
+        waveEnergyRef.current + fillDiff * 10.0 * dt + targetDiff * 6.0,
+        1.0,
+      );
+    }
+    // Naturally decay back toward a subtle calm idle wave (baseline 0.1)
+    waveEnergyRef.current = THREE.MathUtils.lerp(waveEnergyRef.current, 0.1, dt * 2.8);
+
     // Smoothly interpolate water level to sensor target (responsive & stable)
     if (!frozen) {
-      const lerpSpeed = Math.min(delta * 4.5, 0.2);
+      const lerpSpeed = Math.min(dt * 4.5, 0.2);
       currentFillRef.current += (targetFill - currentFillRef.current) * lerpSpeed;
     }
 
@@ -55,6 +77,34 @@ function WaterBody({
 
     // Position top surface plane
     surfaceRef.current.position.y = surfaceY;
+
+    // Dynamic wave ripple deformation on surface geometry (gentle & organic)
+    const geom = planeGeomRef.current;
+    if (geom && !frozen) {
+      const pos = geom.attributes.position;
+      const t = timeRef.current * 3.4;
+      const currentAmp = 0.0075 * waveEnergyRef.current; // subtle max 7.5mm at peak surge
+
+      for (let i = 0; i < pos.count; i++) {
+        const vx = pos.getX(i);
+        const vy = pos.getY(i);
+        const dist = Math.sqrt(vx * vx + vy * vy);
+
+        // Natural compound fluid wave (radial ripple + cross-swell)
+        const wave1 = Math.sin(dist * 22 - t);
+        const wave2 = Math.cos(vx * 16 + t * 0.75) * 0.45;
+        const wave3 = Math.sin(vy * 18 - t * 0.6) * 0.45;
+
+        // Smooth perimeter damping so water stays cleanly within chamber
+        const taperX = Math.cos(Math.min(Math.abs(vx) / (innerW * 0.5), 1) * (Math.PI * 0.46));
+        const taperY = Math.cos(Math.min(Math.abs(vy) / (innerD * 0.5), 1) * (Math.PI * 0.46));
+        const taper = Math.max(taperX * taperY, 0.25);
+
+        pos.setZ(i, (wave1 + wave2 + wave3) * currentAmp * taper);
+      }
+      pos.needsUpdate = true;
+      geom.computeVertexNormals();
+    }
   });
 
   return (
@@ -74,21 +124,21 @@ function WaterBody({
         />
       </mesh>
 
-      {/* 2. Distinct Water Top Surface Plane (Always Blue) */}
+      {/* 2. Distinct Water Top Surface Plane with Wave Deformations */}
       <mesh
         ref={surfaceRef}
         position={[0, -tankH / 2 + 0.01, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <planeGeometry args={[innerW, innerD]} />
+        <planeGeometry ref={planeGeomRef} args={[innerW, innerD, 24, 24]} />
         <meshPhysicalMaterial
           color={WATER_COLOR}
           transparent
           opacity={0.92}
-          roughness={0.03}
+          roughness={0.04}
           metalness={0.12}
           clearcoat={1}
-          clearcoatRoughness={0.04}
+          clearcoatRoughness={0.05}
           side={THREE.DoubleSide}
         />
         {/* Crisp Surface Rim Line */}
@@ -456,15 +506,15 @@ function Scene({
         position={[0, -tankH / 2 - 0.01, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <circleGeometry args={[Math.max(tankW, tankD) * 1.5, 48]} />
-        <meshBasicMaterial color="#f1f5f9" transparent opacity={0.8} />
+        <circleGeometry args={[Math.max(tankW, tankD) * 0.85, 48]} />
+        <meshBasicMaterial color="#f1f5f9" transparent opacity={0.7} />
       </mesh>
       <mesh
         position={[0, -tankH / 2 - 0.008, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <ringGeometry args={[tankW * 0.9, tankW * 0.92, 48]} />
-        <meshBasicMaterial color="#e2e8f0" transparent opacity={0.6} />
+        <ringGeometry args={[tankW * 0.55, tankW * 0.57, 48]} />
+        <meshBasicMaterial color="#e2e8f0" transparent opacity={0.5} />
       </mesh>
 
       <OrbitControls
@@ -473,7 +523,7 @@ function Scene({
         maxDistance={4.5}
         minPolarAngle={Math.PI / 8}
         maxPolarAngle={Math.PI / 2.05}
-        target={[0, 0.05, 0]}
+        target={[0, 0.02, 0]}
         autoRotate={!frozen}
         autoRotateSpeed={0.35}
         dampingFactor={0.05}
@@ -485,7 +535,7 @@ function Scene({
 export default function TankScene(props: TankSceneProps) {
   return (
     <Canvas
-      camera={{ position: [1.95, 1.15, 2.15], fov: 38 }}
+      camera={{ position: [1.38, 0.72, 1.48], fov: 38 }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: 'transparent' }}
