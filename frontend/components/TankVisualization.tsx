@@ -56,7 +56,7 @@ export default function TankVisualization({
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-soft flex flex-col justify-between">
+    <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-soft flex flex-col h-full">
       {/* Header Bar */}
       <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-slate-200/80">
         <div className="flex items-center gap-2.5">
@@ -92,7 +92,7 @@ export default function TankVisualization({
       </div>
 
       {/* 3D Canvas Container */}
-      <div className="relative h-[380px] sm:h-[420px] w-full bg-[#fbfcfd]">
+      <div className="relative flex-1 w-full min-h-[420px] sm:min-h-[460px] bg-[#fbfcfd]">
         {/* Subtle engineering grid background */}
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.35]"

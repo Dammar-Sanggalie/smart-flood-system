@@ -473,7 +473,7 @@ function Scene({
         maxDistance={4.5}
         minPolarAngle={Math.PI / 8}
         maxPolarAngle={Math.PI / 2.05}
-        target={[0, 0, 0]}
+        target={[0, 0.05, 0]}
         autoRotate={!frozen}
         autoRotateSpeed={0.35}
         dampingFactor={0.05}
@@ -485,7 +485,7 @@ function Scene({
 export default function TankScene(props: TankSceneProps) {
   return (
     <Canvas
-      camera={{ position: [1.6, 1.0, 1.8], fov: 40 }}
+      camera={{ position: [1.95, 1.15, 2.15], fov: 38 }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: 'transparent' }}
