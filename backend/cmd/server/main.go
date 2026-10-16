@@ -20,6 +20,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
+
 	"smartflood/backend/internal/api"
 	"smartflood/backend/internal/config"
 	"smartflood/backend/internal/mqtt"
@@ -28,6 +30,9 @@ import (
 )
 
 func main() {
+	// Load .env file if it exists (non-fatal if missing).
+	_ = godotenv.Load()
+
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
 	log.Println("[Main] Starting Smart Flood Detection backend…")
 

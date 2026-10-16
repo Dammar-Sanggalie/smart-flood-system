@@ -8,7 +8,8 @@ export type MQTTConnectionStatus =
   | 'connected'
   | 'disconnected'
   | 'reconnecting'
-  | 'error';
+  | 'error'
+  | 'demo';
 
 export type AppMode = 'live' | 'demo';
 

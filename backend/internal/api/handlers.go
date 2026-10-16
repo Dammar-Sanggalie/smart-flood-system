@@ -9,6 +9,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -72,7 +73,37 @@ func LatestReadingHandler(svc *service.Service) http.HandlerFunc {
 	}
 }
 
-// HistoryHandler handles GET /api/readings/history?limit=100&offset=0.
+// IngestReadingHandler handles POST /api/readings.
+// Accepts the same JSON payload as the MQTT topic (MQTTPayload) so the ESP32
+// can push sensor data directly over HTTP without an MQTT broker.
+func IngestReadingHandler(svc *service.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			fail(w, http.StatusMethodNotAllowed, "use POST")
+			return
+		}
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			fail(w, http.StatusBadRequest, "failed to read request body")
+			return
+		}
+		defer r.Body.Close()
+
+		if len(body) == 0 {
+			fail(w, http.StatusBadRequest, "empty body")
+			return
+		}
+
+		// Delegate to the same processing pipeline as MQTT messages.
+		svc.ProcessMQTTMessage(body)
+
+		ok(w, map[string]interface{}{"status": "received"})
+	}
+}
+
+
+// HistoryHandler handles GET /api/readings?limit=100&offset=0.
 func HistoryHandler(svc *service.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		limit, err := queryInt(r, "limit", 100)

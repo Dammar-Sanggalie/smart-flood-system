@@ -1,49 +1,158 @@
 // ──────────────────────────────────────────────────
-// components/TankScene.tsx — R3F 3D Tank Scene
+// components/TankScene.tsx — R3F 3D Aquarium Tank Scene
 // Must be loaded with dynamic import (ssr: false)
 // ──────────────────────────────────────────────────
 'use client';
 
 import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Grid } from '@react-three/drei';
+import { OrbitControls, Text, Edges } from '@react-three/drei';
 import * as THREE from 'three';
 import type { TankConfig, WaterStatus } from '@/types';
 
-// ── Water Color by Status ─────────────────────────
+// ── Status Colors ─────────────────────────────────
+const STATUS_COLORS: Record<string, string> = {
+  DANGER: '#dc2626',
+  WARNING: '#d97706',
+  SAFE: '#0891b2',
+  UNKNOWN: '#94a3b8',
+  INVALID: '#94a3b8',
+};
+
 function getWaterColor(status: WaterStatus): string {
-  switch (status) {
-    case 'DANGER':  return '#ef4444';
-    case 'WARNING': return '#f59e0b';
-    default:        return '#3b82f6';
-  }
+  return STATUS_COLORS[status] ?? '#0891b2';
 }
 
-// ── Animated Water Mesh ───────────────────────────
-interface WaterMeshProps {
-  targetFill: number;      // 0..1
+// ── Gravel / Substrate at bottom ──────────────────
+function Gravel({ w, d }: { w: number; d: number }) {
+  const stones = useMemo(() => {
+    const arr: { pos: [number, number, number]; scale: number; color: string }[] = [];
+    const colors = ['#94a3b8', '#a8a29e', '#cbd5e1', '#bcaaa4', '#d6d3d1'];
+    const count = Math.floor((w * d) / 0.003);
+    for (let i = 0; i < count; i++) {
+      arr.push({
+        pos: [
+          (Math.random() - 0.5) * w * 0.9,
+          -0.005,
+          (Math.random() - 0.5) * d * 0.9,
+        ],
+        scale: 0.006 + Math.random() * 0.008,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+    return arr;
+  }, [w, d]);
+
+  return (
+    <group>
+      {/* Substrate base layer */}
+      <mesh position={[0, -0.01, 0]}>
+        <boxGeometry args={[w * 0.96, 0.015, d * 0.96]} />
+        <meshStandardMaterial color="#a8a29e" roughness={1} metalness={0} />
+      </mesh>
+      {/* Individual stones */}
+      {stones.map((s, i) => (
+        <mesh key={i} position={s.pos} scale={s.scale}>
+          <dodecahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial color={s.color} roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ── Animated Water Surface (ripple plane) ─────────
+function WaterSurface({
+  meshRef,
+  width,
+  depth,
+  tankH,
+  color,
+}: {
+  meshRef: React.RefObject<THREE.Mesh>;
+  width: number;
+  depth: number;
+  tankH: number;
+  color: string;
+}) {
+  const surfaceRef = useRef<THREE.Mesh>(null);
+  const geom = useMemo(() => {
+    const g = new THREE.PlaneGeometry(width, depth, 24, 24);
+    g.rotateX(-Math.PI / 2);
+    return g;
+  }, [width, depth]);
+
+  const basePositions = useMemo(() => {
+    return geom.attributes.position.array.slice();
+  }, [geom]);
+
+  useFrame(({ clock }) => {
+    if (!surfaceRef.current || !meshRef.current) return;
+    const t = clock.getElapsedTime();
+
+    const waterScaleY = meshRef.current.scale.y;
+    const waterY = -tankH / 2 + tankH * waterScaleY;
+    surfaceRef.current.position.y = waterY;
+
+    const pos = surfaceRef.current.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const ix = i * 3;
+      const x = basePositions[ix];
+      const z = basePositions[ix + 2];
+      pos.array[ix + 1] =
+        Math.sin(x * 12 + t * 2.5) * 0.003 +
+        Math.cos(z * 12 + t * 2) * 0.003;
+    }
+    pos.needsUpdate = true;
+  });
+
+  return (
+    <mesh ref={surfaceRef} geometry={geom}>
+      <meshPhysicalMaterial
+        color={color}
+        transparent
+        opacity={0.65}
+        roughness={0.02}
+        metalness={0.1}
+        transmission={0.5}
+        clearcoat={1}
+        clearcoatRoughness={0.05}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
+// ── Water Body (fills from bottom) ────────────────
+function WaterBody({
+  targetFill,
+  tankW,
+  tankD,
+  tankH,
+  status,
+  frozen,
+}: {
+  targetFill: number;
   tankW: number;
   tankD: number;
   tankH: number;
   status: WaterStatus;
   frozen: boolean;
-}
-
-function WaterMesh({ targetFill, tankW, tankD, tankH, status, frozen }: WaterMeshProps) {
+}) {
   const meshRef = useRef<THREE.Mesh>(null);
   const currentFillRef = useRef(targetFill);
   const colorRef = useRef(new THREE.Color(getWaterColor(status)));
   const targetColorRef = useRef(new THREE.Color(getWaterColor(status)));
 
+  const waterColor = getWaterColor(status);
+
   useFrame(() => {
     if (!meshRef.current) return;
-
     targetColorRef.current.set(getWaterColor(status));
 
     if (!frozen) {
-      currentFillRef.current +=
-        (targetFill - currentFillRef.current) * 0.05;
-      colorRef.current.lerp(targetColorRef.current, 0.05);
+      currentFillRef.current += (targetFill - currentFillRef.current) * 0.06;
+      colorRef.current.lerp(targetColorRef.current, 0.06);
     }
 
     const waterHeight = Math.max(currentFillRef.current * tankH, 0.001);
@@ -54,121 +163,196 @@ function WaterMesh({ targetFill, tankW, tankD, tankH, status, frozen }: WaterMes
     mat.color.copy(colorRef.current);
   });
 
-  return (
-    <mesh ref={meshRef} position={[0, -tankH / 2, 0]}>
-      <boxGeometry args={[tankW - 0.02, tankH, tankD - 0.02]} />
-      <meshPhysicalMaterial
-        color={getWaterColor(status)}
-        transparent
-        opacity={0.75}
-        roughness={0.05}
-        metalness={0.1}
-        transmission={0.3}
-      />
-    </mesh>
-  );
-}
-
-// ── Tank Walls (glass-like box) ───────────────────
-interface TankBoxProps {
-  w: number;
-  h: number;
-  d: number;
-}
-
-function TankBox({ w, h, d }: TankBoxProps) {
-  const edgesRef = useRef<THREE.LineSegments>(null);
-
-  const edges = useMemo(() => {
-    const geo = new THREE.BoxGeometry(w, h, d);
-    return new THREE.EdgesGeometry(geo);
-  }, [w, h, d]);
+  const innerW = tankW * 0.94;
+  const innerD = tankD * 0.94;
 
   return (
-    <group>
-      {/* Glass walls */}
-      <mesh>
-        <boxGeometry args={[w, h, d]} />
+    <>
+      <mesh ref={meshRef} position={[0, -tankH / 2, 0]}>
+        <boxGeometry args={[innerW, tankH, innerD]} />
         <meshPhysicalMaterial
-          color="#94a3b8"
+          color={waterColor}
           transparent
-          opacity={0.08}
-          roughness={0}
-          metalness={0.2}
-          transmission={0.9}
+          opacity={0.5}
+          roughness={0.05}
+          metalness={0.1}
+          transmission={0.6}
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* Edges */}
-      <lineSegments ref={edgesRef} geometry={edges}>
-        <lineBasicMaterial color="#475569" linewidth={1} />
-      </lineSegments>
+      {!frozen && targetFill > 0.01 && (
+        <WaterSurface
+          meshRef={meshRef}
+          width={innerW}
+          depth={innerD}
+          tankH={tankH}
+          color={waterColor}
+        />
+      )}
+    </>
+  );
+}
+
+// ── Aquarium Tank Structure ───────────────────────
+function TankStructure({ w, h, d }: { w: number; h: number; d: number }) {
+  const t = 0.012;
+
+  return (
+    <group>
+      {/* Glass walls — blue-green tinted */}
+      {/* Front */}
+      <mesh position={[0, 0, d / 2]}>
+        <boxGeometry args={[w, h, t]} />
+        <meshPhysicalMaterial
+          color="#a5d8e6"
+          transparent
+          opacity={0.12}
+          roughness={0}
+          metalness={0}
+          transmission={0.98}
+          ior={1.33}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Back */}
+      <mesh position={[0, 0, -d / 2]}>
+        <boxGeometry args={[w, h, t]} />
+        <meshPhysicalMaterial
+          color="#a5d8e6"
+          transparent
+          opacity={0.12}
+          roughness={0}
+          metalness={0}
+          transmission={0.98}
+          ior={1.33}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Left */}
+      <mesh position={[-w / 2, 0, 0]}>
+        <boxGeometry args={[t, h, d]} />
+        <meshPhysicalMaterial
+          color="#a5d8e6"
+          transparent
+          opacity={0.12}
+          roughness={0}
+          metalness={0}
+          transmission={0.98}
+          ior={1.33}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Right */}
+      <mesh position={[w / 2, 0, 0]}>
+        <boxGeometry args={[t, h, d]} />
+        <meshPhysicalMaterial
+          color="#a5d8e6"
+          transparent
+          opacity={0.12}
+          roughness={0}
+          metalness={0}
+          transmission={0.98}
+          ior={1.33}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Black silicone corners (aquarium style) */}
+      {[
+        [-w / 2, -d / 2],
+        [w / 2, -d / 2],
+        [-w / 2, d / 2],
+        [w / 2, d / 2],
+      ].map(([x, z], i) => (
+        <mesh key={i} position={[x, 0, z]}>
+          <boxGeometry args={[t * 2.5, h, t * 2.5]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
+        </mesh>
+      ))}
+
+      {/* Top rim */}
+      <mesh position={[0, h / 2, 0]}>
+        <boxGeometry args={[w + t, t * 1.8, d + t]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.6} metalness={0.2} />
+      </mesh>
+      {/* Bottom rim */}
+      <mesh position={[0, -h / 2, 0]}>
+        <boxGeometry args={[w + t, t * 1.8, d + t]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.6} metalness={0.2} />
+      </mesh>
+
+      {/* Glass edges */}
+      <mesh>
+        <boxGeometry args={[w, h, d]} />
+        <Edges color="#67e8f9" lineWidth={1} />
+      </mesh>
     </group>
   );
 }
 
-// ── Sensor Indicator ──────────────────────────────
-interface SensorProps {
-  tankH: number;
-  sensorOffset: number; // extra height above tank top
-}
-
-function SensorIndicator({ tankH, sensorOffset }: SensorProps) {
+// ── Sensor Housing ────────────────────────────────
+function SensorHousing({ tankH, sensorOffset }: { tankH: number; sensorOffset: number }) {
   const y = tankH / 2 + sensorOffset;
   return (
     <group position={[0, y, 0]}>
-      <mesh>
-        <cylinderGeometry args={[0.04, 0.04, 0.12, 12]} />
-        <meshStandardMaterial color="#94a3b8" />
+      <mesh position={[0, -0.03, 0]}>
+        <boxGeometry args={[0.08, 0.06, 0.08]} />
+        <meshStandardMaterial color="#374151" roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 0.02, 0]}>
+        <boxGeometry args={[0.12, 0.04, 0.06]} />
+        <meshStandardMaterial color="#1e3a5f" roughness={0.4} metalness={0.4} />
+      </mesh>
+      <mesh position={[-0.03, 0.045, 0]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.02, 16]} />
+        <meshStandardMaterial color="#e5e7eb" roughness={0.3} metalness={0.6} />
+      </mesh>
+      <mesh position={[0.03, 0.045, 0]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.02, 16]} />
+        <meshStandardMaterial color="#e5e7eb" roughness={0.3} metalness={0.6} />
       </mesh>
       <Text
-        position={[0.2, 0, 0]}
-        fontSize={0.08}
-        color="#94a3b8"
+        position={[0.15, 0, 0]}
+        fontSize={0.06}
+        color="#64748b"
         anchorX="left"
         anchorY="middle"
+        outlineWidth={0.003}
+        outlineColor="#ffffff"
       >
-        Sensor
+        HC-SR04
       </Text>
     </group>
   );
 }
 
-// ── Distance Dashed Line ──────────────────────────
-interface DistanceLineProps {
-  sensorY: number;
-  waterY: number;
-}
-
-function DistanceLine({ sensorY, waterY }: DistanceLineProps) {
+// ── Measurement Line ──────────────────────────────
+function MeasurementLine({ sensorY, waterY }: { sensorY: number; waterY: number }) {
   const points = useMemo(
-    () => [new THREE.Vector3(0, sensorY, 0), new THREE.Vector3(0, waterY, 0)],
+    () => [
+      new THREE.Vector3(0, sensorY, 0),
+      new THREE.Vector3(0, waterY, 0),
+    ],
     [sensorY, waterY],
   );
-
   const geometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry().setFromPoints(points);
-    return geo;
+    return new THREE.BufferGeometry().setFromPoints(points);
   }, [points]);
 
   return (
     <lineSegments geometry={geometry}>
-      <lineDashedMaterial color="#fbbf24" dashSize={0.05} gapSize={0.04} />
+      <lineDashedMaterial
+        color="#d97706"
+        dashSize={0.04}
+        gapSize={0.03}
+        transparent
+        opacity={0.5}
+      />
     </lineSegments>
   );
 }
 
 // ── Scene Labels ──────────────────────────────────
-interface LabelsProps {
-  fillPercentage: number;
-  waterLevelCm: number;
-  distanceCm: number;
-  tankW: number;
-  tankH: number;
-  sensorValid: boolean;
-  isStale: boolean;
-}
-
 function SceneLabels({
   fillPercentage,
   waterLevelCm,
@@ -177,43 +361,53 @@ function SceneLabels({
   tankH,
   sensorValid,
   isStale,
-}: LabelsProps) {
+}: {
+  fillPercentage: number;
+  waterLevelCm: number;
+  distanceCm: number;
+  tankW: number;
+  tankH: number;
+  sensorValid: boolean;
+  isStale: boolean;
+}) {
   const showValues = sensorValid && !isStale;
-  const x = tankW / 2 + 0.15;
+  const labelX = tankW / 2 + 0.12;
+  const waterY = -tankH / 2 + (fillPercentage / 100) * tankH;
 
   return (
     <group>
-      {/* Fill % */}
       <Text
-        position={[x, tankH * (fillPercentage / 100 - 0.5), 0]}
-        fontSize={0.1}
-        color={showValues ? '#22c55e' : '#6b7280'}
+        position={[labelX, waterY, 0]}
+        fontSize={0.07}
+        color={showValues ? '#16a34a' : '#94a3b8'}
         anchorX="left"
         anchorY="middle"
+        outlineWidth={0.004}
+        outlineColor="#ffffff"
       >
         {showValues ? `${fillPercentage.toFixed(1)}%` : '—%'}
       </Text>
-
-      {/* Water level */}
       <Text
-        position={[x, -tankH / 2, 0]}
-        fontSize={0.08}
-        color="#94a3b8"
+        position={[labelX, -tankH / 2, 0]}
+        fontSize={0.06}
+        color="#64748b"
         anchorX="left"
         anchorY="middle"
+        outlineWidth={0.003}
+        outlineColor="#ffffff"
       >
-        {showValues ? `H: ${waterLevelCm.toFixed(1)}cm` : 'H: —cm'}
+        {showValues ? `${waterLevelCm.toFixed(1)} cm` : '— cm'}
       </Text>
-
-      {/* Distance */}
       <Text
-        position={[-x, tankH / 2 + 0.2, 0]}
-        fontSize={0.08}
-        color="#fbbf24"
+        position={[-labelX, tankH / 2 + 0.15, 0]}
+        fontSize={0.06}
+        color="#d97706"
         anchorX="right"
         anchorY="middle"
+        outlineWidth={0.003}
+        outlineColor="#ffffff"
       >
-        {showValues ? `D: ${distanceCm.toFixed(1)}cm` : 'D: —cm'}
+        {showValues ? `D: ${distanceCm.toFixed(1)} cm` : 'D: —'}
       </Text>
     </group>
   );
@@ -239,26 +433,35 @@ function Scene({
   isStale,
   status,
 }: TankSceneProps) {
-  // Scale from cm to scene units (divide by 100 for meters-ish scale)
-  const SCALE = 1 / 80;
+  const SCALE = 1 / 100;
   const tankW = tankConfig.widthCm * SCALE;
   const tankH = tankConfig.depthCm * SCALE;
   const tankD = tankConfig.lengthCm * SCALE;
-  const sensorOffset = (tankConfig.sensorHeightCm - tankConfig.depthCm) * SCALE;
-  const sensorY = tankH / 2 + Math.max(sensorOffset, 0.1);
+  const sensorOffset = Math.max(
+    (tankConfig.sensorHeightCm - tankConfig.depthCm) * SCALE,
+    0.1,
+  );
+  const sensorY = tankH / 2 + sensorOffset;
   const waterY = -tankH / 2 + (fillPercentage / 100) * tankH;
   const frozen = !sensorValid || isStale;
 
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[2, 4, 3]} intensity={1.2} castShadow />
-      <pointLight position={[-2, 2, -2]} intensity={0.5} color="#60a5fa" />
+      {/* Aquarium-style lighting: bright from above */}
+      <ambientLight intensity={0.85} />
+      <directionalLight
+        position={[0, 6, 0]}
+        intensity={2}
+        castShadow
+        shadow-mapSize={[1024, 1024]}
+      />
+      <directionalLight position={[3, 3, 3]} intensity={0.6} />
+      <pointLight position={[-2, 1, -2]} intensity={0.3} color="#67e8f9" />
 
       <group position={[0, 0, 0]}>
-        <TankBox w={tankW} h={tankH} d={tankD} />
+        <TankStructure w={tankW} h={tankH} d={tankD} />
 
-        <WaterMesh
+        <WaterBody
           targetFill={sensorValid && !isStale ? fillPercentage / 100 : 0}
           tankW={tankW}
           tankD={tankD}
@@ -267,10 +470,10 @@ function Scene({
           frozen={frozen}
         />
 
-        <SensorIndicator tankH={tankH} sensorOffset={Math.max(sensorOffset, 0.15)} />
+        <Gravel w={tankW} d={tankD} />
 
-        <DistanceLine sensorY={sensorY} waterY={waterY} />
-
+        <SensorHousing tankH={tankH} sensorOffset={sensorOffset} />
+        <MeasurementLine sensorY={sensorY} waterY={waterY} />
         <SceneLabels
           fillPercentage={fillPercentage}
           waterLevelCm={waterLevelCm}
@@ -282,35 +485,41 @@ function Scene({
         />
       </group>
 
-      <Grid
-        position={[0, -tankH / 2 - 0.01, 0]}
-        args={[4, 4]}
-        cellSize={0.2}
-        cellThickness={0.5}
-        cellColor="#1e293b"
-        sectionSize={1}
-        sectionThickness={1}
-        sectionColor="#334155"
-        fadeDistance={6}
-        fadeStrength={1}
-        infiniteGrid
-      />
+      {/* Ground platform — light */}
+      <mesh
+        position={[0, -tankH / 2 - 0.02, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow
+      >
+        <circleGeometry args={[2.5, 64]} />
+        <meshStandardMaterial color="#e2e8f0" roughness={0.9} metalness={0} />
+      </mesh>
+      <mesh
+        position={[0, -tankH / 2 - 0.015, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[1.2, 1.25, 64]} />
+        <meshBasicMaterial color="#cbd5e1" transparent opacity={0.6} />
+      </mesh>
 
       <OrbitControls
         enablePan={false}
-        minDistance={0.5}
+        minDistance={0.8}
         maxDistance={5}
+        minPolarAngle={Math.PI / 6}
+        maxPolarAngle={Math.PI / 2.1}
         target={[0, 0, 0]}
+        autoRotate={!frozen}
+        autoRotateSpeed={0.3}
       />
     </>
   );
 }
 
-// ── Exported Canvas Wrapper ───────────────────────
 export default function TankScene(props: TankSceneProps) {
   return (
     <Canvas
-      camera={{ position: [1.5, 1, 2], fov: 50 }}
+      camera={{ position: [1.8, 1.2, 2.2], fov: 45 }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: 'transparent' }}

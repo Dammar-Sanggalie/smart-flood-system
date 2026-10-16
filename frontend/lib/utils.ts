@@ -94,10 +94,11 @@ export function getStatusBorderColor(status: WaterStatus | string): string {
 /** Get Tailwind color classes for MQTT connection status. */
 export function getMQTTStatusColor(status: MQTTConnectionStatus): string {
   switch (status) {
-    case 'connected':    return 'text-green-400';
-    case 'reconnecting': return 'text-yellow-400';
+    case 'connected':    return 'text-green-600';
+    case 'reconnecting': return 'text-yellow-600';
     case 'disconnected': return 'text-slate-400';
-    case 'error':        return 'text-red-400';
+    case 'error':        return 'text-red-500';
+    case 'demo':         return 'text-amber-600';
     default:             return 'text-slate-400';
   }
 }
@@ -105,11 +106,12 @@ export function getMQTTStatusColor(status: MQTTConnectionStatus): string {
 /** Get background color for MQTT dot indicator. */
 export function getMQTTDotColor(status: MQTTConnectionStatus): string {
   switch (status) {
-    case 'connected':    return 'bg-green-400';
-    case 'reconnecting': return 'bg-yellow-400';
-    case 'disconnected': return 'bg-slate-400';
-    case 'error':        return 'bg-red-400';
-    default:             return 'bg-slate-400';
+    case 'connected':    return 'bg-green-500';
+    case 'reconnecting': return 'bg-yellow-500';
+    case 'disconnected': return 'bg-slate-300';
+    case 'error':        return 'bg-red-500';
+    case 'demo':         return 'bg-amber-500';
+    default:             return 'bg-slate-300';
   }
 }
 

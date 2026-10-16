@@ -28,54 +28,48 @@ export default function DashboardHeader({
   const mqttText = getMQTTStatusColor(mqttStatus);
 
   return (
-    <header className="sticky top-0 z-50 bg-bg-dark/95 backdrop-blur border-b border-bg-border">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-bg-border">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
 
-        {/* ── Brand ── */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="p-1.5 bg-blue-600/20 rounded-lg">
-            <Droplets size={20} className="text-blue-400" />
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="p-1.5 bg-cyan-500/15 rounded-lg">
+            <Droplets size={18} className="text-cyan-600" />
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-sm font-bold text-white leading-tight">
+            <h1 className="text-sm font-semibold text-slate-900 leading-tight">
               Smart Flood Detection
             </h1>
-            <p className="text-[10px] text-slate-500">IoT Monitoring System</p>
+            <p className="text-[10px] text-slate-400">IoT Monitoring System</p>
           </div>
-          <h1 className="sm:hidden text-sm font-bold text-white">Flood Monitor</h1>
         </div>
 
-        {/* ── Spacer ── */}
         <div className="flex-1" />
 
-        {/* ── Device ID ── */}
         {deviceId && (
-          <div className="hidden md:flex items-center gap-1.5 bg-bg-card border border-bg-border rounded-lg px-2.5 py-1">
-            <Cpu size={12} className="text-slate-500" />
-            <span className="text-xs font-mono text-slate-300">{deviceId}</span>
+          <div className="hidden md:flex items-center gap-1.5 text-slate-400">
+            <Cpu size={12} />
+            <span className="text-xs font-mono text-slate-500">{deviceId}</span>
           </div>
         )}
 
-        {/* ── Mode Badge ── */}
         <div
           className={cn(
-            'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold',
+            'flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold',
             mode === 'demo'
-              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-              : 'bg-green-500/20 text-green-400 border border-green-500/40',
+              ? 'bg-amber-500/15 text-amber-600'
+              : 'bg-green-500/15 text-green-600',
           )}
         >
           <span
             className={cn(
               'w-1.5 h-1.5 rounded-full',
-              mode === 'demo' ? 'bg-amber-400 animate-pulse' : 'bg-green-400',
+              mode === 'demo' ? 'bg-amber-500 animate-pulse' : 'bg-green-500',
             )}
           />
           {mode === 'demo' ? 'DEMO' : 'LIVE'}
         </div>
 
-        {/* ── MQTT Status ── */}
-        <div className="flex items-center gap-1.5 bg-bg-card border border-bg-border rounded-lg px-2.5 py-1">
+        <div className="flex items-center gap-1.5">
           <span className={cn('relative flex h-2 w-2')}>
             {mqttStatus === 'connected' && (
               <span
@@ -87,36 +81,34 @@ export default function DashboardHeader({
             )}
             <span className={cn('relative inline-flex rounded-full h-2 w-2', mqttDot)} />
           </span>
-          <span className={cn('text-xs font-semibold hidden sm:block', mqttText)}>
+          <span className={cn('text-xs font-medium hidden sm:block', mqttText)}>
             {mqttStatus === 'connected'
-              ? 'MQTT'
+              ? 'Connected'
               : mqttStatus === 'reconnecting'
               ? 'Reconnecting'
               : mqttStatus === 'error'
-              ? 'MQTT Error'
-              : 'No MQTT'}
+              ? 'Error'
+              : mqttStatus === 'demo'
+              ? 'Demo'
+              : 'Disconnected'}
           </span>
         </div>
 
-        {/* ── Last Updated ── */}
         {lastUpdated && (
-          <span className="hidden lg:block text-xs text-slate-500">
+          <span className="hidden lg:block text-[11px] text-slate-400">
             {formatRelativeTime(lastUpdated)}
           </span>
         )}
 
-        {/* ── Settings Button ── */}
         <button
           onClick={onSettingsClick}
           className={cn(
-            'p-2 rounded-lg text-slate-400 hover:text-white hover:bg-bg-card',
-            'border border-transparent hover:border-bg-border',
+            'p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-bg-hover',
             'transition-all duration-150',
-            'focus:outline-none focus:ring-1 focus:ring-blue-500',
           )}
           title="Tank Configuration"
         >
-          <Settings size={18} />
+          <Settings size={16} />
         </button>
       </div>
     </header>
