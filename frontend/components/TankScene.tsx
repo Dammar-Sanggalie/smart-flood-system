@@ -363,59 +363,6 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
 
   return (
     <group>
-      {/* Front Optical Glass */}
-      <mesh position={[0, 0, d / 2]}>
-        <boxGeometry args={[w, h, t]} />
-        <meshStandardMaterial
-          color="#bae6fd"
-          transparent
-          opacity={0.08}
-          roughness={0.05}
-          metalness={0.1}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* Back Glass */}
-      <mesh position={[0, 0, -d / 2]}>
-        <boxGeometry args={[w, h, t]} />
-        <meshStandardMaterial
-          color="#bae6fd"
-          transparent
-          opacity={0.08}
-          roughness={0.05}
-          metalness={0.1}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* Left Glass */}
-      <mesh position={[-w / 2, 0, 0]}>
-        <boxGeometry args={[t, h, d]} />
-        <meshStandardMaterial
-          color="#bae6fd"
-          transparent
-          opacity={0.08}
-          roughness={0.05}
-          metalness={0.1}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* Right Glass */}
-      <mesh position={[w / 2, 0, 0]}>
-        <boxGeometry args={[t, h, d]} />
-        <meshStandardMaterial
-          color="#bae6fd"
-          transparent
-          opacity={0.08}
-          roughness={0.05}
-          metalness={0.1}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-
       {/* Reservoir Base Plate (Brushed Titanium / Satin Steel) */}
       <mesh position={[0, -h / 2 - 0.008, 0]}>
         <boxGeometry args={[w + 0.04, 0.016, d + 0.04]} />
