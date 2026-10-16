@@ -1,5 +1,6 @@
 // ──────────────────────────────────────────────────
 // components/TankScene.tsx — Precision Industrial 3D Digital Twin
+// Enhanced with aquarium water effects: bubbles, gravel, caustics
 // ──────────────────────────────────────────────────
 'use client';
 
@@ -22,6 +23,165 @@ function getWaterHex(status: WaterStatus): string {
   return WATER_COLORS[status] ?? '#0284c7';
 }
 
+// ── Rising Bubbles ─────────────────────────────────
+function Bubbles({
+  width,
+  depth,
+  tankH,
+  waterHeight,
+  count = 18,
+}: {
+  width: number;
+  depth: number;
+  tankH: number;
+  waterHeight: number;
+  count?: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const bubbles = useMemo(() => {
+    return Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * width * 0.8,
+      z: (Math.random() - 0.5) * depth * 0.8,
+      speed: 0.015 + Math.random() * 0.025,
+      size: 0.004 + Math.random() * 0.006,
+      wobblePhase: Math.random() * Math.PI * 2,
+      wobbleAmp: 0.002 + Math.random() * 0.004,
+      startY: Math.random(),
+    }));
+  }, [width, depth, count]);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    const surfaceY = -tankH / 2 + waterHeight;
+    const bottomY = -tankH / 2 + 0.01;
+
+    groupRef.current.children.forEach((child, i) => {
+      const b = bubbles[i];
+      if (!b) return;
+      // progress from bottom (0) to surface (1)
+      let progress = (b.startY + t * b.speed * 2) % 1;
+      const y = bottomY + progress * (surfaceY - bottomY);
+
+      child.position.y = y;
+      child.position.x = b.x + Math.sin(t * 1.5 + b.wobblePhase) * b.wobbleAmp;
+      child.position.z = b.z + Math.cos(t * 1.2 + b.wobblePhase) * b.wobbleAmp;
+
+      // Scale: small at bottom, grow slightly, shrink at surface
+      const scaleMod = 1 + Math.sin(progress * Math.PI) * 0.3;
+      child.scale.setScalar(b.size * scaleMod);
+
+      // Opacity: fade in at bottom, fade out near surface
+      const mat = (child as THREE.Mesh).material as THREE.MeshPhysicalMaterial;
+      if (mat) {
+        mat.opacity = Math.sin(progress * Math.PI) * 0.6;
+      }
+    });
+  });
+
+  if (waterHeight < 0.02) return null;
+
+  return (
+    <group ref={groupRef}>
+      {bubbles.map((b, i) => (
+        <mesh key={i} position={[b.x, 0, b.z]} scale={b.size}>
+          <sphereGeometry args={[1, 12, 12]} />
+          <meshPhysicalMaterial
+            color="#e0f2fe"
+            transparent
+            opacity={0.4}
+            roughness={0}
+            metalness={0}
+            transmission={0.9}
+            ior={1.33}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ── Gravel / Substrate at bottom ──────────────────
+function Gravel({ w, d }: { w: number; d: number }) {
+  const stones = useMemo(() => {
+    const arr: { pos: [number, number, number]; scale: number; color: string }[] = [];
+    const colors = ['#94a3b8', '#a8a29e', '#cbd5e1', '#bcaaa4', '#d6d3d1', '#78716c'];
+    const count = Math.floor((w * d) / 0.0025);
+    for (let i = 0; i < count; i++) {
+      arr.push({
+        pos: [
+          (Math.random() - 0.5) * w * 0.92,
+          -0.004,
+          (Math.random() - 0.5) * d * 0.92,
+        ],
+        scale: 0.005 + Math.random() * 0.007,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+    return arr;
+  }, [w, d]);
+
+  return (
+    <group>
+      {/* Substrate base layer */}
+      <mesh position={[0, -0.008, 0]}>
+        <boxGeometry args={[w * 0.96, 0.012, d * 0.96]} />
+        <meshStandardMaterial color="#a8a29e" roughness={1} metalness={0} />
+      </mesh>
+      {/* Individual stones */}
+      {stones.map((s, i) => (
+        <mesh key={i} position={s.pos} scale={s.scale}>
+          <dodecahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial color={s.color} roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ── Caustics Light Pattern on floor ────────────────
+function CausticsLight({
+  width,
+  depth,
+  tankH,
+  waterHeight,
+}: {
+  width: number;
+  depth: number;
+  tankH: number;
+  waterHeight: number;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
+
+  const geom = useMemo(() => {
+    const g = new THREE.PlaneGeometry(width * 0.94, depth * 0.94, 1, 1);
+    g.rotateX(-Math.PI / 2);
+    return g;
+  }, [width, depth]);
+
+  useFrame(({ clock }) => {
+    if (!matRef.current) return;
+    const t = clock.getElapsedTime();
+    // Animate opacity for shimmering caustics effect
+    matRef.current.opacity = 0.04 + Math.sin(t * 0.8) * 0.02 + Math.cos(t * 1.3) * 0.015;
+  });
+
+  if (waterHeight < 0.02) return null;
+
+  return (
+    <mesh ref={meshRef} geometry={geom} position={[0, -tankH / 2 + 0.001, 0]}>
+      <meshBasicMaterial
+        ref={matRef}
+        color="#7dd3fc"
+        transparent
+        opacity={0.06}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
 // ── Animated Water Surface Wave ───────────────────
 function WaterSurface({
   meshRef,
@@ -38,7 +198,7 @@ function WaterSurface({
 }) {
   const surfaceRef = useRef<THREE.Mesh>(null);
   const geom = useMemo(() => {
-    const g = new THREE.PlaneGeometry(width, depth, 32, 32);
+    const g = new THREE.PlaneGeometry(width, depth, 40, 40);
     g.rotateX(-Math.PI / 2);
     return g;
   }, [width, depth]);
@@ -60,11 +220,15 @@ function WaterSurface({
       const ix = i * 3;
       const x = basePositions[ix];
       const z = basePositions[ix + 2];
+      // Multi-frequency wave for realistic water surface
       pos.array[ix + 1] =
-        Math.sin(x * 10 + t * 2.2) * 0.0025 +
-        Math.cos(z * 10 + t * 1.8) * 0.0025;
+        Math.sin(x * 8 + t * 2.2) * 0.004 +
+        Math.cos(z * 8 + t * 1.8) * 0.004 +
+        Math.sin((x + z) * 12 + t * 3) * 0.002 +
+        Math.cos(x * 5 - z * 7 + t * 1.5) * 0.002;
     }
     pos.needsUpdate = true;
+    geom.computeVertexNormals();
   });
 
   return (
@@ -72,12 +236,12 @@ function WaterSurface({
       <meshPhysicalMaterial
         color={color}
         transparent
-        opacity={0.75}
-        roughness={0.03}
-        metalness={0.05}
-        transmission={0.4}
+        opacity={0.7}
+        roughness={0.02}
+        metalness={0.08}
+        transmission={0.5}
         clearcoat={1}
-        clearcoatRoughness={0.04}
+        clearcoatRoughness={0.03}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -134,10 +298,10 @@ function WaterBody({
         <meshPhysicalMaterial
           color={waterColor}
           transparent
-          opacity={0.58}
+          opacity={0.55}
           roughness={0.04}
           metalness={0.05}
-          transmission={0.65}
+          transmission={0.62}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -154,6 +318,42 @@ function WaterBody({
   );
 }
 
+// ── Water Line Glow Ring ───────────────────────────
+function WaterLineGlow({
+  width,
+  depth,
+  tankH,
+  waterHeight,
+  color,
+}: {
+  width: number;
+  depth: number;
+  tankH: number;
+  waterHeight: number;
+  color: string;
+}) {
+  const matRef = useRef<THREE.MeshBasicMaterial>(null);
+
+  useFrame(({ clock }) => {
+    if (!matRef.current) return;
+    const t = clock.getElapsedTime();
+    matRef.current.opacity = 0.15 + Math.sin(t * 2) * 0.05;
+  });
+
+  if (waterHeight < 0.01) return null;
+  const y = -tankH / 2 + waterHeight;
+
+  return (
+    <>
+      {/* Front glow line */}
+      <mesh position={[0, y, depth / 2 - 0.001]}>
+        <planeGeometry args={[width * 0.96, 0.006]} />
+        <meshBasicMaterial ref={matRef} color={color} transparent opacity={0.2} />
+      </mesh>
+    </>
+  );
+}
+
 // ── Precision Reservoir Structure ─────────────────
 function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
   const t = 0.01;
@@ -166,7 +366,7 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
         <meshPhysicalMaterial
           color="#f8fafc"
           transparent
-          opacity={0.12}
+          opacity={0.1}
           roughness={0.02}
           metalness={0}
           transmission={0.96}
@@ -180,7 +380,7 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
         <meshPhysicalMaterial
           color="#f8fafc"
           transparent
-          opacity={0.12}
+          opacity={0.1}
           roughness={0.02}
           metalness={0}
           transmission={0.96}
@@ -194,7 +394,7 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
         <meshPhysicalMaterial
           color="#f8fafc"
           transparent
-          opacity={0.12}
+          opacity={0.1}
           roughness={0.02}
           metalness={0}
           transmission={0.96}
@@ -208,7 +408,7 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
         <meshPhysicalMaterial
           color="#f8fafc"
           transparent
-          opacity={0.12}
+          opacity={0.1}
           roughness={0.02}
           metalness={0}
           transmission={0.96}
@@ -374,6 +574,9 @@ function UltrasonicBeam({
   waterY: number;
   status: WaterStatus;
 }) {
+  const ringRef = useRef<THREE.Mesh>(null);
+  const ringMatRef = useRef<THREE.MeshBasicMaterial>(null);
+
   const points = useMemo(() => {
     return [new THREE.Vector3(0, sensorY - 0.02, 0), new THREE.Vector3(0, waterY, 0)];
   }, [sensorY, waterY]);
@@ -383,6 +586,17 @@ function UltrasonicBeam({
   }, [points]);
 
   const beamColor = status === 'DANGER' ? '#e11d48' : status === 'WARNING' ? '#d97706' : '#0284c7';
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (ringRef.current) {
+      const pulse = 1 + Math.sin(t * 4) * 0.15;
+      ringRef.current.scale.set(pulse, pulse, pulse);
+    }
+    if (ringMatRef.current) {
+      ringMatRef.current.opacity = 0.4 + Math.sin(t * 4) * 0.2;
+    }
+  });
 
   return (
     <group>
@@ -395,10 +609,10 @@ function UltrasonicBeam({
           opacity={0.65}
         />
       </lineSegments>
-      {/* Ripple ring on water target point */}
-      <mesh position={[0, waterY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.015, 0.03, 24]} />
-        <meshBasicMaterial color={beamColor} transparent opacity={0.6} side={THREE.DoubleSide} />
+      {/* Pulsing ripple ring on water target point */}
+      <mesh ref={ringRef} position={[0, waterY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.015, 0.03, 32]} />
+        <meshBasicMaterial ref={ringMatRef} color={beamColor} transparent opacity={0.6} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
@@ -434,6 +648,12 @@ function Scene({
   const waterY = -tankH / 2 + (fillPercentage / 100) * tankH;
   const frozen = !sensorValid || isStale;
 
+  // Track current water height for bubbles/caustics
+  const waterHeightRef = useRef(0);
+  const actualFill = sensorValid && !isStale ? fillPercentage / 100 : 0;
+  waterHeightRef.current = actualFill * tankH;
+  const waterColor = getWaterHex(status);
+
   return (
     <>
       {/* Pure Studio Lighting */}
@@ -451,15 +671,48 @@ function Scene({
         {/* Reservoir Chamber */}
         <ReservoirChamber w={tankW} h={tankH} d={tankD} />
 
+        {/* Gravel substrate at bottom */}
+        <Gravel w={tankW} d={tankD} />
+
+        {/* Caustics light pattern on floor */}
+        <CausticsLight
+          width={tankW}
+          depth={tankD}
+          tankH={tankH}
+          waterHeight={waterHeightRef.current}
+        />
+
         {/* Dynamic Water Fluid Body */}
         <WaterBody
-          targetFill={sensorValid && !isStale ? fillPercentage / 100 : 0}
+          targetFill={actualFill}
           tankW={tankW}
           tankD={tankD}
           tankH={tankH}
           status={status}
           frozen={frozen}
         />
+
+        {/* Rising bubbles inside water */}
+        {!frozen && actualFill > 0.02 && (
+          <Bubbles
+            width={tankW * 0.96}
+            depth={tankD * 0.96}
+            tankH={tankH}
+            waterHeight={waterHeightRef.current}
+            count={20}
+          />
+        )}
+
+        {/* Water line glow */}
+        {!frozen && actualFill > 0.01 && (
+          <WaterLineGlow
+            width={tankW}
+            depth={tankD}
+            tankH={tankH}
+            waterHeight={waterHeightRef.current}
+            color={waterColor}
+          />
+        )}
 
         {/* Graduated Metric Scale */}
         <MetricScale
