@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+
+node_modules/
+.next/
+out/
+dist/
+build/
+
+*.db
+*.sqlite
+*.sqlite3
+
+*.log
+Thumbs.db
+.DS_Store
