@@ -1,10 +1,10 @@
 // ──────────────────────────────────────────────────
-// app/page.tsx — Main Dashboard Page
+// app/page.tsx — Main Telemetry Dashboard Page
 // ──────────────────────────────────────────────────
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Settings2, Droplets } from 'lucide-react';
+import { ChevronDown, ChevronRight, Settings2, Droplets, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTankData } from '@/hooks/useTankData';
 
@@ -19,7 +19,7 @@ import TankConfigForm from '@/components/TankConfigForm';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
 
-// ── Collapsible panel wrapper ─────────────────────
+// ── Collapsible Panel Component ───────────────────
 function CollapsiblePanel({
   title,
   icon: Icon,
@@ -33,14 +33,14 @@ function CollapsiblePanel({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-white rounded-xl border border-bg-border overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden transition-all">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-bg-hover transition-colors duration-150"
+        className="w-full flex items-center justify-between px-4 sm:px-5 py-3 hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-2">
           <Icon size={15} className="text-slate-400" />
-          <span className="text-sm font-semibold text-slate-700">{title}</span>
+          <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider">{title}</span>
         </div>
         {open ? (
           <ChevronDown size={15} className="text-slate-400" />
@@ -49,7 +49,7 @@ function CollapsiblePanel({
         )}
       </button>
       {open && (
-        <div className="px-4 pb-4 border-t border-bg-border pt-4">
+        <div className="px-4 sm:px-5 pb-4 border-t border-slate-100 pt-3.5">
           {children}
         </div>
       )}
@@ -57,24 +57,24 @@ function CollapsiblePanel({
   );
 }
 
-// ── Empty / waiting state for metric section ──────
+// ── Telemetry Standby Placeholder ─────────────────
 function WaitingBanner() {
   return (
-    <div className="rounded-xl border border-bg-border border-dashed p-8 text-center">
-      <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-cyan-500/10 flex items-center justify-center">
-        <Droplets size={20} className="text-cyan-500/60" />
+    <div className="bg-white rounded-xl border border-dashed border-slate-200 p-8 text-center shadow-xs">
+      <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center">
+        <Droplets size={20} className="text-sky-600" />
       </div>
-      <p className="text-slate-500 font-medium text-sm">
-        Waiting for first reading…
+      <p className="text-slate-900 font-semibold text-sm">
+        Awaiting Initial Sensor Telemetry
       </p>
-      <p className="text-slate-400 text-xs mt-1 max-w-xs mx-auto">
-        Data will appear here once the ESP32 device connects and sends sensor readings.
+      <p className="text-slate-500 text-xs mt-1 max-w-sm mx-auto">
+        Live water level, clearance distance, and volume metrics will populate once the ESP32 transmitter streams data.
       </p>
     </div>
   );
 }
 
-// ── Main Page ─────────────────────────────────────
+// ── Main Page Component ───────────────────────────
 export default function DashboardPage() {
   const {
     reading,
@@ -87,7 +87,6 @@ export default function DashboardPage() {
     error,
     mode,
     mqttStatus,
-    refreshConfig,
     updateConfig,
     clearActivityLog,
   } = useTankData();
@@ -99,30 +98,29 @@ export default function DashboardPage() {
   }, []);
 
   const handleSettingsClick = useCallback(() => {
-    setSettingsOpen((o) => !o);
-    // Scroll to config section on mobile
+    setSettingsOpen((prev) => !prev);
     setTimeout(() => {
       document.getElementById('config-panel')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   }, []);
 
-  // ── Loading ──────────────────────────────────────
+  // ── Loading Screen ──
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg-dark">
-        <LoadingState message="Initializing dashboard…" />
+      <div className="min-h-screen bg-white">
+        <LoadingState message="Connecting to Smart Flood telemetry system…" />
       </div>
     );
   }
 
-  // ── Fatal Error (no backend at all) ──────────────
+  // ── Fatal Backend Error ──
   if (error && !reading && !config) {
     return (
-      <div className="min-h-screen bg-bg-dark">
+      <div className="min-h-screen bg-white">
         <ErrorState
           message={error}
           onRetry={handleRetry}
-          hint="Make sure the backend server is running on the configured API URL."
+          hint="Ensure the Go backend server is running on :8080 and reachable."
         />
       </div>
     );
@@ -132,11 +130,11 @@ export default function DashboardPage() {
   const lastMessageAt = status?.lastMessageAt ?? reading?.receivedAt ?? null;
 
   return (
-    <div className="min-h-screen bg-bg-dark flex flex-col">
-      {/* Demo banner */}
+    <div className="min-h-screen bg-white flex flex-col antialiased">
+      {/* Simulation Banner (if demo mode) */}
       {mode === 'demo' && <DemoModeBanner />}
 
-      {/* Header */}
+      {/* Main Enterprise Header */}
       <DashboardHeader
         deviceId={reading?.deviceId ?? status?.lastReading?.deviceId}
         mqttStatus={mqttStatus}
@@ -146,39 +144,39 @@ export default function DashboardPage() {
         onSettingsClick={handleSettingsClick}
       />
 
-      {/* Main content */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-5">
-        {/* Error banner (non-fatal) */}
+      {/* Main Container */}
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Non-fatal notification banner */}
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg px-4 py-2.5 flex items-center gap-2">
-            <span className="shrink-0">⚠</span>
-            <span>{error}</span>
+          <div className="mb-5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-lg px-4 py-3 flex items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={15} className="text-rose-600 shrink-0" />
+              <span>{error}</span>
+            </div>
             <button
               onClick={handleRetry}
-              className="ml-auto text-red-500 hover:text-red-700 underline"
+              className="text-rose-700 hover:text-rose-900 font-semibold underline underline-offset-2 shrink-0"
             >
               Retry
             </button>
           </div>
         )}
 
-        {/* Grid layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-          {/* ── Left Column (2/3) ── */}
-          <div className="lg:col-span-2 space-y-5">
-
-            {/* Metrics */}
+        {/* Primary Responsive Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* ── Primary Visual & Telemetry Column (7 on lg, 8 on xl) ── */}
+          <div className="lg:col-span-7 xl:col-span-8 space-y-6 min-w-0">
+            {/* Real-time Metric Cards */}
             {reading ? (
               <MetricGrid reading={reading} config={config} />
             ) : (
               <WaitingBanner />
             )}
 
-            {/* 3D Tank */}
+            {/* 3D Digital Twin Reservoir */}
             <TankVisualization reading={reading} config={config} />
 
-            {/* History Chart */}
+            {/* Hydrograph Telemetry History Chart */}
             <WaterLevelChart
               history={history}
               warnThreshold={config?.warnThresholdPercent}
@@ -186,10 +184,9 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* ── Right Column (1/3) ── */}
-          <div className="space-y-4" id="config-panel">
-
-            {/* Connection status */}
+          {/* ── System Telemetry & Configuration Column (5 on lg, 4 on xl) ── */}
+          <div className="lg:col-span-5 xl:col-span-4 space-y-5 min-w-0" id="config-panel">
+            {/* Network Telemetry Mesh */}
             <ConnectionStatus
               mqttStatus={mqttStatus}
               backendConnected={backendConnected}
@@ -197,25 +194,22 @@ export default function DashboardPage() {
               sseStatus={sseStatus}
             />
 
-            {/* Tank Config Form */}
+            {/* Collapsible Reservoir Calibration Form */}
             <CollapsiblePanel
-              title="Tank Configuration"
+              title="Reservoir Parameters"
               icon={Settings2}
               defaultOpen={settingsOpen}
             >
               {config ? (
-                <TankConfigForm
-                  config={config}
-                  onSave={updateConfig}
-                />
+                <TankConfigForm config={config} onSave={updateConfig} />
               ) : (
-                <div className="text-center py-4 text-slate-400 text-xs">
-                  Loading configuration…
+                <div className="text-center py-6 text-slate-400 text-xs">
+                  Loading calibration parameters…
                 </div>
               )}
             </CollapsiblePanel>
 
-            {/* Activity Log */}
+            {/* Real-time Activity & Audit Log */}
             <ActivityLog
               entries={activityLog}
               onClear={clearActivityLog}
@@ -224,11 +218,20 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-bg-border py-3 px-6">
-        <p className="text-xs text-slate-400 text-center">
-          Smart Flood Detection System — IoT Dashboard
-        </p>
+      {/* Clean Technical Footer */}
+      <footer className="border-t border-slate-200/80 bg-white py-4 px-4 sm:px-6 lg:px-8 mt-auto">
+        <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+          <p>
+            Smart Flood Detection System — IoT Hydro Telemetry & Early Warning Dashboard
+          </p>
+          <div className="flex items-center gap-4 text-[11px] font-mono">
+            <span>ESP32 HC-SR04</span>
+            <span>•</span>
+            <span>SSE Telemetry</span>
+            <span>•</span>
+            <span>Go SQLite Engine</span>
+          </div>
+        </div>
       </footer>
     </div>
   );

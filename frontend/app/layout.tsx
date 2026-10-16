@@ -1,19 +1,11 @@
 import type { Metadata } from 'next';
-import { Poppins } from 'next/font/google';
 import './globals.css';
 
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
-  display: 'swap',
-  variable: '--font-poppins',
-});
-
 export const metadata: Metadata = {
-  title: 'Smart Flood Detection System',
+  title: 'Smart Flood Detection System — IoT Telemetry Dashboard',
   description:
-    'Real-time IoT dashboard for monitoring water levels and flood risk using ultrasonic sensors.',
-  keywords: ['IoT', 'flood detection', 'water level', 'monitoring', 'ESP32'],
+    'Real-time IoT engineering dashboard for precision water level monitoring, tank capacity analysis, and flood risk detection using ultrasonic sensors.',
+  keywords: ['IoT', 'flood detection', 'water level', 'telemetry', 'ESP32', 'sensor monitoring'],
 };
 
 export default function RootLayout({
@@ -22,12 +14,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={poppins.variable} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#f1f5f9" />
+        <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className={`${poppins.className} min-h-screen bg-bg-dark text-slate-900 antialiased`}>
+      <body className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-sky-100 selection:text-sky-900">
         {children}
       </body>
     </html>

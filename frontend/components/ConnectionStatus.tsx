@@ -1,9 +1,9 @@
 // ──────────────────────────────────────────────────
-// components/ConnectionStatus.tsx
+// components/ConnectionStatus.tsx — Network Telemetry Mesh
 // ──────────────────────────────────────────────────
 'use client';
 
-import { Wifi, WifiOff, Server } from 'lucide-react';
+import { Wifi, Server, Activity, Radio } from 'lucide-react';
 import { cn, getMQTTDotColor, getMQTTStatusColor, formatRelativeTime } from '@/lib/utils';
 import type { MQTTConnectionStatus } from '@/types';
 
@@ -18,6 +18,7 @@ function StatusRow({
   label,
   dotColor,
   textColor,
+  bgColor,
   statusText,
   icon: Icon,
   pulse,
@@ -25,29 +26,39 @@ function StatusRow({
   label: string;
   dotColor: string;
   textColor: string;
+  bgColor: string;
   statusText: string;
   icon: React.ElementType;
   pulse: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2 text-slate-500">
-        <Icon size={14} />
-        <span className="text-xs font-medium">{label}</span>
+    <div className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-b-0 gap-2">
+      <div className="flex items-center gap-2.5 text-slate-700 min-w-0">
+        <div className="w-6 h-6 rounded-md bg-slate-50 border border-slate-200/60 flex items-center justify-center shrink-0 text-slate-400">
+          <Icon size={13} />
+        </div>
+        <span className="text-xs font-semibold truncate">{label}</span>
       </div>
-      <div className="flex items-center gap-1.5">
-        <span className={cn('relative flex h-2 w-2')}>
+
+      <div
+        className={cn(
+          'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border text-[11px] font-mono font-semibold shrink-0',
+          bgColor,
+          textColor,
+        )}
+      >
+        <span className="relative flex h-1.5 w-1.5">
           {pulse && (
             <span
               className={cn(
-                'animate-ping absolute inline-flex h-full w-full rounded-full opacity-75',
+                'animate-ping absolute inline-flex h-full w-full rounded-full opacity-60',
                 dotColor,
               )}
             />
-            )}
-          <span className={cn('relative inline-flex rounded-full h-2 w-2', dotColor)} />
+          )}
+          <span className={cn('relative inline-flex rounded-full h-1.5 w-1.5', dotColor)} />
         </span>
-        <span className={cn('text-xs font-semibold', textColor)}>{statusText}</span>
+        <span>{statusText}</span>
       </div>
     </div>
   );
@@ -61,74 +72,104 @@ export default function ConnectionStatus({
 }: ConnectionStatusProps) {
   const mqttDot = getMQTTDotColor(mqttStatus);
   const mqttText = getMQTTStatusColor(mqttStatus);
+  const mqttBg =
+    mqttStatus === 'connected'
+      ? 'bg-emerald-50 border-emerald-200'
+      : mqttStatus === 'reconnecting'
+      ? 'bg-amber-50 border-amber-200'
+      : mqttStatus === 'demo'
+      ? 'bg-sky-50 border-sky-200'
+      : 'bg-slate-50 border-slate-200';
   const mqttLabel =
     mqttStatus === 'connected'
-      ? 'Connected'
+      ? 'ONLINE'
       : mqttStatus === 'reconnecting'
-      ? 'Reconnecting…'
+      ? 'RETRYING'
       : mqttStatus === 'error'
-      ? 'Error'
+      ? 'ERROR'
       : mqttStatus === 'demo'
-      ? 'Demo (no MQTT)'
-      : 'Disconnected';
+      ? 'SIMULATED'
+      : 'OFFLINE';
 
-  const backendDot = backendConnected ? 'bg-green-500' : 'bg-red-500';
-  const backendTextColor = backendConnected ? 'text-green-600' : 'text-red-500';
-  const backendLabel = backendConnected ? 'Online' : 'Offline';
+  const backendDot = backendConnected ? 'bg-emerald-500' : 'bg-rose-500';
+  const backendTextColor = backendConnected ? 'text-emerald-700' : 'text-rose-700';
+  const backendBg = backendConnected
+    ? 'bg-emerald-50 border-emerald-200'
+    : 'bg-rose-50 border-rose-200';
+  const backendLabel = backendConnected ? 'HEALTHY' : 'UNREACHABLE';
 
   const sseDot =
     sseStatus === 'connected'
-      ? 'bg-green-500'
+      ? 'bg-emerald-500'
       : sseStatus === 'connecting'
-      ? 'bg-yellow-500'
+      ? 'bg-amber-500'
       : sseStatus === 'error'
-      ? 'bg-red-500'
-      : 'bg-slate-400';
+      ? 'bg-rose-500'
+      : 'bg-slate-300';
   const sseTextColor =
     sseStatus === 'connected'
-      ? 'text-green-600'
+      ? 'text-emerald-700'
       : sseStatus === 'connecting'
-      ? 'text-yellow-600'
+      ? 'text-amber-700'
       : sseStatus === 'error'
-      ? 'text-red-500'
-      : 'text-slate-400';
+      ? 'text-rose-700'
+      : 'text-slate-500';
+  const sseBg =
+    sseStatus === 'connected'
+      ? 'bg-emerald-50 border-emerald-200'
+      : sseStatus === 'connecting'
+      ? 'bg-amber-50 border-amber-200'
+      : sseStatus === 'error'
+      ? 'bg-rose-50 border-rose-200'
+      : 'bg-slate-50 border-slate-200';
   const sseLabel =
     sseStatus === 'connected'
-      ? 'Connected'
+      ? 'STREAMING'
       : sseStatus === 'connecting'
-      ? 'Connecting…'
+      ? 'CONNECTING'
       : sseStatus === 'error'
-      ? 'Error'
-      : 'Disconnected';
+      ? 'ERROR'
+      : 'IDLE';
 
   return (
-    <div className="bg-white rounded-xl border border-bg-border p-4 space-y-3">
-      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-        Connection Status
-      </h3>
+    <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs">
+      <div className="flex items-center justify-between mb-3.5">
+        <div className="flex items-center gap-2">
+          <Activity size={15} className="text-sky-600" />
+          <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
+            Network Telemetry
+          </h3>
+        </div>
+        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
+          MESH ACTIVE
+        </span>
+      </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-0.5">
         <StatusRow
           label="MQTT Broker"
           dotColor={mqttDot}
           textColor={mqttText}
+          bgColor={mqttBg}
           statusText={mqttLabel}
-          icon={mqttStatus === 'connected' ? Wifi : WifiOff}
+          icon={Radio}
           pulse={mqttStatus === 'connected'}
         />
         <StatusRow
-          label="Backend API"
+          label="Go API Daemon"
           dotColor={backendDot}
           textColor={backendTextColor}
+          bgColor={backendBg}
           statusText={backendLabel}
           icon={Server}
           pulse={backendConnected}
         />
         {sseStatus && (
           <StatusRow
-            label="Live Stream"
+            label="SSE Live Stream"
             dotColor={sseDot}
             textColor={sseTextColor}
+            bgColor={sseBg}
             statusText={sseLabel}
             icon={Wifi}
             pulse={sseStatus === 'connected'}
@@ -137,11 +178,9 @@ export default function ConnectionStatus({
       </div>
 
       {lastMessageAt && (
-        <div className="pt-1 border-t border-bg-border">
-          <p className="text-xs text-slate-400">
-            Last message:{' '}
-            <span className="text-slate-600">{formatRelativeTime(lastMessageAt)}</span>
-          </p>
+        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+          <span>Heartbeat sync</span>
+          <span className="font-mono text-slate-700">{formatRelativeTime(lastMessageAt)}</span>
         </div>
       )}
     </div>

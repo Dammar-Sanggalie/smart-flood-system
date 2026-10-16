@@ -1,6 +1,5 @@
 // ──────────────────────────────────────────────────
-// components/TankScene.tsx — R3F 3D Aquarium Tank Scene
-// Must be loaded with dynamic import (ssr: false)
+// components/TankScene.tsx — Precision Industrial 3D Digital Twin
 // ──────────────────────────────────────────────────
 'use client';
 
@@ -10,58 +9,20 @@ import { OrbitControls, Text, Edges } from '@react-three/drei';
 import * as THREE from 'three';
 import type { TankConfig, WaterStatus } from '@/types';
 
-// ── Status Colors ─────────────────────────────────
-const STATUS_COLORS: Record<string, string> = {
-  DANGER: '#dc2626',
-  WARNING: '#d97706',
-  SAFE: '#0891b2',
-  UNKNOWN: '#94a3b8',
+// ── Water Color Palette ───────────────────────────
+const WATER_COLORS: Record<string, string> = {
+  SAFE: '#0284c7',       // Sky/Ocean Blue
+  WARNING: '#d97706',    // Amber
+  DANGER: '#e11d48',     // Rose / Red
+  UNKNOWN: '#94a3b8',    // Slate
   INVALID: '#94a3b8',
 };
 
-function getWaterColor(status: WaterStatus): string {
-  return STATUS_COLORS[status] ?? '#0891b2';
+function getWaterHex(status: WaterStatus): string {
+  return WATER_COLORS[status] ?? '#0284c7';
 }
 
-// ── Gravel / Substrate at bottom ──────────────────
-function Gravel({ w, d }: { w: number; d: number }) {
-  const stones = useMemo(() => {
-    const arr: { pos: [number, number, number]; scale: number; color: string }[] = [];
-    const colors = ['#94a3b8', '#a8a29e', '#cbd5e1', '#bcaaa4', '#d6d3d1'];
-    const count = Math.floor((w * d) / 0.003);
-    for (let i = 0; i < count; i++) {
-      arr.push({
-        pos: [
-          (Math.random() - 0.5) * w * 0.9,
-          -0.005,
-          (Math.random() - 0.5) * d * 0.9,
-        ],
-        scale: 0.006 + Math.random() * 0.008,
-        color: colors[Math.floor(Math.random() * colors.length)],
-      });
-    }
-    return arr;
-  }, [w, d]);
-
-  return (
-    <group>
-      {/* Substrate base layer */}
-      <mesh position={[0, -0.01, 0]}>
-        <boxGeometry args={[w * 0.96, 0.015, d * 0.96]} />
-        <meshStandardMaterial color="#a8a29e" roughness={1} metalness={0} />
-      </mesh>
-      {/* Individual stones */}
-      {stones.map((s, i) => (
-        <mesh key={i} position={s.pos} scale={s.scale}>
-          <dodecahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={s.color} roughness={0.9} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-// ── Animated Water Surface (ripple plane) ─────────
+// ── Animated Water Surface Wave ───────────────────
 function WaterSurface({
   meshRef,
   width,
@@ -77,7 +38,7 @@ function WaterSurface({
 }) {
   const surfaceRef = useRef<THREE.Mesh>(null);
   const geom = useMemo(() => {
-    const g = new THREE.PlaneGeometry(width, depth, 24, 24);
+    const g = new THREE.PlaneGeometry(width, depth, 32, 32);
     g.rotateX(-Math.PI / 2);
     return g;
   }, [width, depth]);
@@ -100,8 +61,8 @@ function WaterSurface({
       const x = basePositions[ix];
       const z = basePositions[ix + 2];
       pos.array[ix + 1] =
-        Math.sin(x * 12 + t * 2.5) * 0.003 +
-        Math.cos(z * 12 + t * 2) * 0.003;
+        Math.sin(x * 10 + t * 2.2) * 0.0025 +
+        Math.cos(z * 10 + t * 1.8) * 0.0025;
     }
     pos.needsUpdate = true;
   });
@@ -111,19 +72,19 @@ function WaterSurface({
       <meshPhysicalMaterial
         color={color}
         transparent
-        opacity={0.65}
-        roughness={0.02}
-        metalness={0.1}
-        transmission={0.5}
+        opacity={0.75}
+        roughness={0.03}
+        metalness={0.05}
+        transmission={0.4}
         clearcoat={1}
-        clearcoatRoughness={0.05}
+        clearcoatRoughness={0.04}
         side={THREE.DoubleSide}
       />
     </mesh>
   );
 }
 
-// ── Water Body (fills from bottom) ────────────────
+// ── Water Body (Dynamic Fluid Mesh) ───────────────
 function WaterBody({
   targetFill,
   tankW,
@@ -141,14 +102,14 @@ function WaterBody({
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const currentFillRef = useRef(targetFill);
-  const colorRef = useRef(new THREE.Color(getWaterColor(status)));
-  const targetColorRef = useRef(new THREE.Color(getWaterColor(status)));
+  const colorRef = useRef(new THREE.Color(getWaterHex(status)));
+  const targetColorRef = useRef(new THREE.Color(getWaterHex(status)));
 
-  const waterColor = getWaterColor(status);
+  const waterColor = getWaterHex(status);
 
   useFrame(() => {
     if (!meshRef.current) return;
-    targetColorRef.current.set(getWaterColor(status));
+    targetColorRef.current.set(getWaterHex(status));
 
     if (!frozen) {
       currentFillRef.current += (targetFill - currentFillRef.current) * 0.06;
@@ -163,8 +124,8 @@ function WaterBody({
     mat.color.copy(colorRef.current);
   });
 
-  const innerW = tankW * 0.94;
-  const innerD = tankD * 0.94;
+  const innerW = tankW * 0.96;
+  const innerD = tankD * 0.96;
 
   return (
     <>
@@ -173,10 +134,10 @@ function WaterBody({
         <meshPhysicalMaterial
           color={waterColor}
           transparent
-          opacity={0.5}
-          roughness={0.05}
-          metalness={0.1}
-          transmission={0.6}
+          opacity={0.58}
+          roughness={0.04}
+          metalness={0.05}
+          transmission={0.65}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -193,71 +154,82 @@ function WaterBody({
   );
 }
 
-// ── Aquarium Tank Structure ───────────────────────
-function TankStructure({ w, h, d }: { w: number; h: number; d: number }) {
-  const t = 0.012;
+// ── Precision Reservoir Structure ─────────────────
+function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
+  const t = 0.01;
 
   return (
     <group>
-      {/* Glass walls — blue-green tinted */}
-      {/* Front */}
+      {/* Front Optical Glass */}
       <mesh position={[0, 0, d / 2]}>
         <boxGeometry args={[w, h, t]} />
         <meshPhysicalMaterial
-          color="#a5d8e6"
+          color="#f8fafc"
           transparent
           opacity={0.12}
-          roughness={0}
+          roughness={0.02}
           metalness={0}
-          transmission={0.98}
-          ior={1.33}
+          transmission={0.96}
+          ior={1.45}
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* Back */}
+      {/* Back Glass */}
       <mesh position={[0, 0, -d / 2]}>
         <boxGeometry args={[w, h, t]} />
         <meshPhysicalMaterial
-          color="#a5d8e6"
+          color="#f8fafc"
           transparent
           opacity={0.12}
-          roughness={0}
+          roughness={0.02}
           metalness={0}
-          transmission={0.98}
-          ior={1.33}
+          transmission={0.96}
+          ior={1.45}
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* Left */}
+      {/* Left Glass */}
       <mesh position={[-w / 2, 0, 0]}>
         <boxGeometry args={[t, h, d]} />
         <meshPhysicalMaterial
-          color="#a5d8e6"
+          color="#f8fafc"
           transparent
           opacity={0.12}
-          roughness={0}
+          roughness={0.02}
           metalness={0}
-          transmission={0.98}
-          ior={1.33}
+          transmission={0.96}
+          ior={1.45}
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* Right */}
+      {/* Right Glass */}
       <mesh position={[w / 2, 0, 0]}>
         <boxGeometry args={[t, h, d]} />
         <meshPhysicalMaterial
-          color="#a5d8e6"
+          color="#f8fafc"
           transparent
           opacity={0.12}
-          roughness={0}
+          roughness={0.02}
           metalness={0}
-          transmission={0.98}
-          ior={1.33}
+          transmission={0.96}
+          ior={1.45}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Black silicone corners (aquarium style) */}
+      {/* Reservoir Base Plate (Brushed Titanium / Satin Steel) */}
+      <mesh position={[0, -h / 2 - 0.008, 0]}>
+        <boxGeometry args={[w + 0.04, 0.016, d + 0.04]} />
+        <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
+      </mesh>
+
+      {/* Top Frame Rim */}
+      <mesh position={[0, h / 2 + 0.005, 0]}>
+        <boxGeometry args={[w + 0.03, 0.01, d + 0.03]} />
+        <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
+      </mesh>
+
+      {/* Precision corner pillars (Stainless Steel) */}
       {[
         [-w / 2, -d / 2],
         [w / 2, -d / 2],
@@ -265,155 +237,174 @@ function TankStructure({ w, h, d }: { w: number; h: number; d: number }) {
         [w / 2, d / 2],
       ].map(([x, z], i) => (
         <mesh key={i} position={[x, 0, z]}>
-          <boxGeometry args={[t * 2.5, h, t * 2.5]} />
-          <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
+          <boxGeometry args={[0.014, h + 0.01, 0.014]} />
+          <meshStandardMaterial color="#94a3b8" roughness={0.25} metalness={0.75} />
         </mesh>
       ))}
 
-      {/* Top rim */}
-      <mesh position={[0, h / 2, 0]}>
-        <boxGeometry args={[w + t, t * 1.8, d + t]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.6} metalness={0.2} />
-      </mesh>
-      {/* Bottom rim */}
-      <mesh position={[0, -h / 2, 0]}>
-        <boxGeometry args={[w + t, t * 1.8, d + t]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.6} metalness={0.2} />
-      </mesh>
-
-      {/* Glass edges */}
+      {/* Subtle edge guide */}
       <mesh>
         <boxGeometry args={[w, h, d]} />
-        <Edges color="#67e8f9" lineWidth={1} />
+        <Edges color="#38bdf8" lineWidth={1} />
       </mesh>
     </group>
   );
 }
 
-// ── Sensor Housing ────────────────────────────────
-function SensorHousing({ tankH, sensorOffset }: { tankH: number; sensorOffset: number }) {
+// ── Graduated Measurement Scale (Etched Rulers) ────
+function MetricScale({
+  w,
+  h,
+  d,
+  depthCm,
+}: {
+  w: number;
+  h: number;
+  d: number;
+  depthCm: number;
+}) {
+  const steps = 10;
+  const ticks = useMemo(() => {
+    const arr: { pct: number; y: number; isMajor: boolean; label?: string }[] = [];
+    for (let i = 0; i <= steps; i++) {
+      const pct = (i / steps) * 100;
+      const y = -h / 2 + (i / steps) * h;
+      const isMajor = i % 2 === 0;
+      const label = isMajor ? `${Math.round((pct / 100) * depthCm)}cm` : undefined;
+      arr.push({ pct, y, isMajor, label });
+    }
+    return arr;
+  }, [h, depthCm]);
+
+  const scaleX = w / 2 + 0.01;
+  const scaleZ = d / 2 + 0.002;
+
+  return (
+    <group position={[scaleX, 0, scaleZ]}>
+      {ticks.map((t, idx) => (
+        <group key={idx} position={[0, t.y, 0]}>
+          {/* Tick marker */}
+          <mesh position={[t.isMajor ? -0.015 : -0.008, 0, 0]}>
+            <boxGeometry args={[t.isMajor ? 0.03 : 0.016, 0.002, 0.001]} />
+            <meshBasicMaterial color={t.isMajor ? '#475569' : '#94a3b8'} />
+          </mesh>
+          {/* Text label */}
+          {t.label && (
+            <Text
+              position={[0.025, 0, 0]}
+              fontSize={0.036}
+              color="#475569"
+              anchorX="left"
+              anchorY="middle"
+            >
+              {t.label}
+            </Text>
+          )}
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ── HC-SR04 Ultrasonic Transducer & Mount ─────────
+function SensorTransducer({
+  tankH,
+  sensorOffset,
+}: {
+  tankH: number;
+  sensorOffset: number;
+}) {
   const y = tankH / 2 + sensorOffset;
+
   return (
     <group position={[0, y, 0]}>
-      <mesh position={[0, -0.03, 0]}>
-        <boxGeometry args={[0.08, 0.06, 0.08]} />
-        <meshStandardMaterial color="#374151" roughness={0.6} />
+      {/* Sensor mounting bracket crossbar */}
+      <mesh position={[0, 0.035, 0]}>
+        <boxGeometry args={[0.28, 0.008, 0.04]} />
+        <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
       </mesh>
-      <mesh position={[0, 0.02, 0]}>
-        <boxGeometry args={[0.12, 0.04, 0.06]} />
-        <meshStandardMaterial color="#1e3a5f" roughness={0.4} metalness={0.4} />
+
+      {/* Sensor PCB Body (Engineering Blue) */}
+      <mesh position={[0, 0.018, 0]}>
+        <boxGeometry args={[0.11, 0.028, 0.045]} />
+        <meshStandardMaterial color="#1e3a8a" roughness={0.5} metalness={0.2} />
       </mesh>
-      <mesh position={[-0.03, 0.045, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, 0.02, 16]} />
-        <meshStandardMaterial color="#e5e7eb" roughness={0.3} metalness={0.6} />
+
+      {/* Ultrasonic Transmitter & Receiver Transducers */}
+      <mesh position={[-0.03, 0, 0]} rotation={[0, 0, 0]}>
+        <cylinderGeometry args={[0.013, 0.013, 0.022, 24]} />
+        <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.8} />
       </mesh>
-      <mesh position={[0.03, 0.045, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, 0.02, 16]} />
-        <meshStandardMaterial color="#e5e7eb" roughness={0.3} metalness={0.6} />
+      <mesh position={[0.03, 0, 0]} rotation={[0, 0, 0]}>
+        <cylinderGeometry args={[0.013, 0.013, 0.022, 24]} />
+        <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.8} />
       </mesh>
+
+      {/* Transducer mesh face (black centers) */}
+      <mesh position={[-0.03, -0.0115, 0]} rotation={[0, 0, 0]}>
+        <cylinderGeometry args={[0.009, 0.009, 0.002, 24]} />
+        <meshBasicMaterial color="#0f172a" />
+      </mesh>
+      <mesh position={[0.03, -0.0115, 0]} rotation={[0, 0, 0]}>
+        <cylinderGeometry args={[0.009, 0.009, 0.002, 24]} />
+        <meshBasicMaterial color="#0f172a" />
+      </mesh>
+
+      {/* Sensor label */}
       <Text
-        position={[0.15, 0, 0]}
-        fontSize={0.06}
+        position={[0, 0.052, 0]}
+        fontSize={0.032}
         color="#64748b"
-        anchorX="left"
-        anchorY="middle"
-        outlineWidth={0.003}
-        outlineColor="#ffffff"
+        anchorX="center"
+        anchorY="bottom"
       >
-        HC-SR04
+        HC-SR04 SENSOR
       </Text>
     </group>
   );
 }
 
-// ── Measurement Line ──────────────────────────────
-function MeasurementLine({ sensorY, waterY }: { sensorY: number; waterY: number }) {
-  const points = useMemo(
-    () => [
-      new THREE.Vector3(0, sensorY, 0),
-      new THREE.Vector3(0, waterY, 0),
-    ],
-    [sensorY, waterY],
-  );
+// ── Ultrasonic Acoustic Measurement Beam ──────────
+function UltrasonicBeam({
+  sensorY,
+  waterY,
+  status,
+}: {
+  sensorY: number;
+  waterY: number;
+  status: WaterStatus;
+}) {
+  const points = useMemo(() => {
+    return [new THREE.Vector3(0, sensorY - 0.02, 0), new THREE.Vector3(0, waterY, 0)];
+  }, [sensorY, waterY]);
+
   const geometry = useMemo(() => {
     return new THREE.BufferGeometry().setFromPoints(points);
   }, [points]);
 
-  return (
-    <lineSegments geometry={geometry}>
-      <lineDashedMaterial
-        color="#d97706"
-        dashSize={0.04}
-        gapSize={0.03}
-        transparent
-        opacity={0.5}
-      />
-    </lineSegments>
-  );
-}
-
-// ── Scene Labels ──────────────────────────────────
-function SceneLabels({
-  fillPercentage,
-  waterLevelCm,
-  distanceCm,
-  tankW,
-  tankH,
-  sensorValid,
-  isStale,
-}: {
-  fillPercentage: number;
-  waterLevelCm: number;
-  distanceCm: number;
-  tankW: number;
-  tankH: number;
-  sensorValid: boolean;
-  isStale: boolean;
-}) {
-  const showValues = sensorValid && !isStale;
-  const labelX = tankW / 2 + 0.12;
-  const waterY = -tankH / 2 + (fillPercentage / 100) * tankH;
+  const beamColor = status === 'DANGER' ? '#e11d48' : status === 'WARNING' ? '#d97706' : '#0284c7';
 
   return (
     <group>
-      <Text
-        position={[labelX, waterY, 0]}
-        fontSize={0.07}
-        color={showValues ? '#16a34a' : '#94a3b8'}
-        anchorX="left"
-        anchorY="middle"
-        outlineWidth={0.004}
-        outlineColor="#ffffff"
-      >
-        {showValues ? `${fillPercentage.toFixed(1)}%` : '—%'}
-      </Text>
-      <Text
-        position={[labelX, -tankH / 2, 0]}
-        fontSize={0.06}
-        color="#64748b"
-        anchorX="left"
-        anchorY="middle"
-        outlineWidth={0.003}
-        outlineColor="#ffffff"
-      >
-        {showValues ? `${waterLevelCm.toFixed(1)} cm` : '— cm'}
-      </Text>
-      <Text
-        position={[-labelX, tankH / 2 + 0.15, 0]}
-        fontSize={0.06}
-        color="#d97706"
-        anchorX="right"
-        anchorY="middle"
-        outlineWidth={0.003}
-        outlineColor="#ffffff"
-      >
-        {showValues ? `D: ${distanceCm.toFixed(1)} cm` : 'D: —'}
-      </Text>
+      <lineSegments geometry={geometry}>
+        <lineDashedMaterial
+          color={beamColor}
+          dashSize={0.03}
+          gapSize={0.02}
+          transparent
+          opacity={0.65}
+        />
+      </lineSegments>
+      {/* Ripple ring on water target point */}
+      <mesh position={[0, waterY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.015, 0.03, 24]} />
+        <meshBasicMaterial color={beamColor} transparent opacity={0.6} side={THREE.DoubleSide} />
+      </mesh>
     </group>
   );
 }
 
-// ── Full 3D Scene ─────────────────────────────────
+// ── Precision 3D Scene Assembly ───────────────────
 interface TankSceneProps {
   distanceCm: number;
   waterLevelCm: number;
@@ -425,8 +416,6 @@ interface TankSceneProps {
 }
 
 function Scene({
-  distanceCm,
-  waterLevelCm,
   fillPercentage,
   tankConfig,
   sensorValid,
@@ -439,7 +428,7 @@ function Scene({
   const tankD = tankConfig.lengthCm * SCALE;
   const sensorOffset = Math.max(
     (tankConfig.sensorHeightCm - tankConfig.depthCm) * SCALE,
-    0.1,
+    0.08,
   );
   const sensorY = tankH / 2 + sensorOffset;
   const waterY = -tankH / 2 + (fillPercentage / 100) * tankH;
@@ -447,20 +436,22 @@ function Scene({
 
   return (
     <>
-      {/* Aquarium-style lighting: bright from above */}
-      <ambientLight intensity={0.85} />
+      {/* Pure Studio Lighting */}
+      <ambientLight intensity={1.15} />
       <directionalLight
-        position={[0, 6, 0]}
-        intensity={2}
+        position={[4, 8, 4]}
+        intensity={1.9}
         castShadow
         shadow-mapSize={[1024, 1024]}
       />
-      <directionalLight position={[3, 3, 3]} intensity={0.6} />
-      <pointLight position={[-2, 1, -2]} intensity={0.3} color="#67e8f9" />
+      <directionalLight position={[-4, 4, -4]} intensity={0.65} color="#f0f9ff" />
+      <pointLight position={[0, sensorY + 0.2, 0]} intensity={0.4} color="#38bdf8" />
 
       <group position={[0, 0, 0]}>
-        <TankStructure w={tankW} h={tankH} d={tankD} />
+        {/* Reservoir Chamber */}
+        <ReservoirChamber w={tankW} h={tankH} d={tankD} />
 
+        {/* Dynamic Water Fluid Body */}
         <WaterBody
           targetFill={sensorValid && !isStale ? fillPercentage / 100 : 0}
           tankW={tankW}
@@ -470,47 +461,47 @@ function Scene({
           frozen={frozen}
         />
 
-        <Gravel w={tankW} d={tankD} />
-
-        <SensorHousing tankH={tankH} sensorOffset={sensorOffset} />
-        <MeasurementLine sensorY={sensorY} waterY={waterY} />
-        <SceneLabels
-          fillPercentage={fillPercentage}
-          waterLevelCm={waterLevelCm}
-          distanceCm={distanceCm}
-          tankW={tankW}
-          tankH={tankH}
-          sensorValid={sensorValid}
-          isStale={isStale}
+        {/* Graduated Metric Scale */}
+        <MetricScale
+          w={tankW}
+          h={tankH}
+          d={tankD}
+          depthCm={tankConfig.depthCm}
         />
+
+        {/* Ultrasonic Sensor & Beam */}
+        <SensorTransducer tankH={tankH} sensorOffset={sensorOffset} />
+        {!frozen && (
+          <UltrasonicBeam sensorY={sensorY} waterY={waterY} status={status} />
+        )}
       </group>
 
-      {/* Ground platform — light */}
+      {/* Clean Studio Floor Shadow Ring */}
       <mesh
-        position={[0, -tankH / 2 - 0.02, 0]}
+        position={[0, -tankH / 2 - 0.01, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow
       >
-        <circleGeometry args={[2.5, 64]} />
-        <meshStandardMaterial color="#e2e8f0" roughness={0.9} metalness={0} />
+        <circleGeometry args={[Math.max(tankW, tankD) * 1.5, 48]} />
+        <meshBasicMaterial color="#f1f5f9" transparent opacity={0.8} />
       </mesh>
       <mesh
-        position={[0, -tankH / 2 - 0.015, 0]}
+        position={[0, -tankH / 2 - 0.008, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <ringGeometry args={[1.2, 1.25, 64]} />
-        <meshBasicMaterial color="#cbd5e1" transparent opacity={0.6} />
+        <ringGeometry args={[tankW * 0.9, tankW * 0.92, 48]} />
+        <meshBasicMaterial color="#e2e8f0" transparent opacity={0.6} />
       </mesh>
 
       <OrbitControls
         enablePan={false}
-        minDistance={0.8}
-        maxDistance={5}
-        minPolarAngle={Math.PI / 6}
-        maxPolarAngle={Math.PI / 2.1}
+        minDistance={0.7}
+        maxDistance={4.5}
+        minPolarAngle={Math.PI / 8}
+        maxPolarAngle={Math.PI / 2.05}
         target={[0, 0, 0]}
         autoRotate={!frozen}
-        autoRotateSpeed={0.3}
+        autoRotateSpeed={0.35}
+        dampingFactor={0.05}
       />
     </>
   );
@@ -519,7 +510,7 @@ function Scene({
 export default function TankScene(props: TankSceneProps) {
   return (
     <Canvas
-      camera={{ position: [1.8, 1.2, 2.2], fov: 45 }}
+      camera={{ position: [1.6, 1.0, 1.8], fov: 40 }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: 'transparent' }}

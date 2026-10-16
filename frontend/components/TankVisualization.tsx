@@ -1,12 +1,11 @@
 // ──────────────────────────────────────────────────
-// components/TankVisualization.tsx — Dynamic wrapper
-// for the 3D R3F tank scene (SSR disabled)
+// components/TankVisualization.tsx — Precision 3D Digital Twin
 // ──────────────────────────────────────────────────
 'use client';
 
 import dynamic from 'next/dynamic';
 import { useState, useCallback } from 'react';
-import { RotateCcw, AlertTriangle, Clock, Maximize2 } from 'lucide-react';
+import { RotateCcw, AlertTriangle, Clock, Compass, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import StatusBadge from './StatusBadge';
 import type { SensorReading, TankConfig, WaterStatus } from '@/types';
@@ -15,9 +14,9 @@ const TankScene = dynamic(() => import('./TankScene'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-full text-slate-400 text-sm">
-      <div className="flex flex-col items-center gap-2">
-        <div className="w-7 h-7 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
-        <span className="text-xs">Loading 3D view…</span>
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-slate-200 border-t-sky-600 rounded-full animate-spin" />
+        <span className="text-xs font-medium text-slate-500">Initializing 3D Digital Twin…</span>
       </div>
     </div>
   ),
@@ -57,11 +56,13 @@ export default function TankVisualization({
   }, []);
 
   return (
-    <div className="bg-white rounded-xl border border-bg-border overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-bg-border">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-slate-800">
-            Tank Visualization
+    <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden shadow-xs">
+      {/* Header Bar */}
+      <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-slate-200/80">
+        <div className="flex items-center gap-2.5">
+          <div className="w-2 h-2 rounded-full bg-sky-500" />
+          <h2 className="text-sm font-semibold text-slate-900 tracking-tight">
+            Digital Twin 3D Reservoir
           </h2>
           {reading && (
             <StatusBadge
@@ -74,28 +75,34 @@ export default function TankVisualization({
 
         <div className="flex items-center gap-2">
           {config && (
-            <span className="text-[10px] text-slate-400 hidden sm:block font-mono">
-              {config.lengthCm}×{config.widthCm}×{config.depthCm}cm
-            </span>
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-50 border border-slate-200 text-[11px] text-slate-600 font-mono">
+              <Layers size={11} className="text-slate-400" />
+              <span>{config.lengthCm}×{config.widthCm}×{config.depthCm} cm</span>
+            </div>
           )}
           <button
             onClick={handleReset}
-            title="Reset camera"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-bg-hover transition-colors"
+            title="Reset 3D Camera Angle"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={12} className="text-slate-400" />
+            <span className="hidden sm:inline">Reset View</span>
           </button>
         </div>
       </div>
 
-      <div className="relative" style={{ height: '360px' }}>
+      {/* 3D Canvas Container */}
+      <div className="relative h-[380px] sm:h-[420px] w-full bg-[#fbfcfd]">
+        {/* Subtle engineering grid background */}
         <div
-          key={resetKey}
-          className="w-full h-full"
+          className="absolute inset-0 pointer-events-none opacity-[0.35]"
           style={{
-            background: 'radial-gradient(ellipse at center, #e0f2fe 0%, #f1f5f9 70%)',
+            backgroundImage: `radial-gradient(#cbd5e1 1px, transparent 1px)`,
+            backgroundSize: '24px 24px',
           }}
-        >
+        />
+
+        <div key={resetKey} className="w-full h-full relative z-10">
           <TankScene
             distanceCm={distanceCm}
             waterLevelCm={waterLevelCm}
@@ -107,72 +114,76 @@ export default function TankVisualization({
           />
         </div>
 
+        {/* Live HUD Floating Card (Top Left) */}
+        {reading && sensorValid && !isStale && (
+          <div className="absolute top-3 left-3 z-20 bg-white/90 backdrop-blur-md rounded-lg px-3 py-2 border border-slate-200/80 shadow-xs flex items-center gap-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+                Water Level
+              </p>
+              <p className="text-sm font-bold font-mono text-slate-900">
+                {waterLevelCm.toFixed(1)} <span className="text-xs font-normal text-slate-500">cm</span>
+              </p>
+            </div>
+            <div className="w-[1px] h-6 bg-slate-200" />
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+                Fill Volume
+              </p>
+              <p className="text-sm font-bold font-mono text-sky-600">
+                {fillPercentage.toFixed(1)} <span className="text-xs font-normal text-slate-500">%</span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Drag Hint (Top Right) */}
+        <div className="absolute top-3 right-3 z-20 pointer-events-none text-[11px] text-slate-400 font-medium flex items-center gap-1.5 bg-white/80 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-200/60">
+          <Compass size={12} className="text-slate-400" />
+          <span>Rotate & Zoom</span>
+        </div>
+
+        {/* Waiting State Overlay */}
         {!reading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-            <div className="text-center space-y-1.5">
-              <div className="text-slate-500 text-sm font-medium">
-                Waiting for first reading…
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 backdrop-blur-xs">
+            <div className="text-center space-y-1.5 p-6 bg-white rounded-xl border border-slate-200 shadow-sm max-w-xs">
+              <div className="text-slate-900 text-sm font-semibold">
+                Waiting for Telemetry
               </div>
-              <div className="text-slate-400 text-xs">
-                Tank will animate once data is received
+              <div className="text-slate-500 text-xs">
+                3D Digital Twin will animate once readings arrive from the ultrasonic sensor.
               </div>
             </div>
           </div>
         )}
 
+        {/* Sensor Invalid Overlay */}
         {reading && !sensorValid && !isStale && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <AlertTriangle size={28} className="text-slate-400" />
-              <span className="text-slate-700 font-medium text-sm">
-                Sensor Invalid
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 backdrop-blur-xs">
+            <div className="flex flex-col items-center gap-2 p-5 bg-white rounded-xl border border-slate-200 shadow-sm text-center max-w-xs">
+              <AlertTriangle size={24} className="text-amber-500" />
+              <span className="text-slate-900 font-semibold text-sm">
+                Sensor Value Out of Range
               </span>
-              <span className="text-slate-400 text-xs">
-                Cannot read water level
+              <span className="text-slate-500 text-xs">
+                Distance exceeds configured sensor boundary or ultrasonic echo was lost.
               </span>
             </div>
           </div>
         )}
 
+        {/* Stale Data Overlay */}
         {reading && isStale && (
-          <div className="absolute inset-0 flex items-center justify-center bg-amber-50/60 backdrop-blur-[2px]">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <Clock size={28} className="text-amber-500" />
-              <span className="text-amber-700 font-medium text-sm">
-                Data Stale
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 backdrop-blur-xs">
+            <div className="flex flex-col items-center gap-2 p-5 bg-white rounded-xl border border-amber-200 shadow-sm text-center max-w-xs">
+              <Clock size={24} className="text-amber-600" />
+              <span className="text-slate-900 font-semibold text-sm">
+                Telemetry Stale
               </span>
-              <span className="text-amber-600/70 text-xs">
-                No recent readings
-              </span>
-            </div>
-          </div>
-        )}
-
-        {reading && sensorValid && !isStale && (
-          <div className="absolute bottom-2.5 left-2.5 bg-white/85 rounded-lg px-2.5 py-1.5 backdrop-blur-sm border border-bg-border">
-            <div className="flex items-center gap-2">
-              <div
-                className={cn(
-                  'h-1.5 rounded-full transition-all duration-500',
-                  status === 'DANGER'
-                    ? 'bg-red-500'
-                    : status === 'WARNING'
-                    ? 'bg-amber-500'
-                    : 'bg-cyan-500',
-                )}
-                style={{ width: `${Math.max(fillPercentage, 2)}px`, maxWidth: '70px' }}
-              />
-              <span className="text-xs font-bold text-slate-900">
-                {fillPercentage.toFixed(1)}%
+              <span className="text-slate-500 text-xs">
+                No recent heartbeat received within timeout threshold.
               </span>
             </div>
-          </div>
-        )}
-
-        {reading && sensorValid && !isStale && (
-          <div className="absolute top-2.5 right-2.5 text-[10px] text-slate-400 flex items-center gap-1">
-            <Maximize2 size={10} />
-            Drag to rotate
           </div>
         )}
       </div>

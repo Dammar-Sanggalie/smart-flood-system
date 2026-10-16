@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-/** Format ISO date string to human-readable datetime. */
+/** Format ISO date string to human-readable datetime (DD/MM/YYYY HH:mm:ss). */
 export function formatDateTime(iso: string): string {
   if (!iso) return '—';
   try {
@@ -43,13 +43,13 @@ export function formatTime(iso: string): string {
   }
 }
 
-/** Format ISO date string as relative time ("3 seconds ago"). */
+/** Format ISO date string as relative time ("3s ago", "just now"). */
 export function formatRelativeTime(iso: string): string {
   if (!iso) return '—';
   try {
     const diffMs = Date.now() - new Date(iso).getTime();
     const diffSec = Math.floor(diffMs / 1000);
-    if (diffSec < 5) return 'just now';
+    if (diffSec < 4) return 'just now';
     if (diffSec < 60) return `${diffSec}s ago`;
     const diffMin = Math.floor(diffSec / 60);
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -64,54 +64,78 @@ export function formatRelativeTime(iso: string): string {
 /** Get Tailwind text color class for a WaterStatus. */
 export function getStatusColor(status: WaterStatus | string): string {
   switch (status) {
-    case 'SAFE':    return 'text-water-safe';
-    case 'WARNING': return 'text-water-warn';
-    case 'DANGER':  return 'text-water-danger';
-    default:        return 'text-water-invalid';
+    case 'SAFE':
+      return 'text-emerald-700';
+    case 'WARNING':
+      return 'text-amber-700';
+    case 'DANGER':
+      return 'text-rose-700';
+    default:
+      return 'text-slate-600';
   }
 }
 
 /** Get Tailwind bg color class for a WaterStatus. */
 export function getStatusBgColor(status: WaterStatus | string): string {
   switch (status) {
-    case 'SAFE':    return 'bg-water-safe/10';
-    case 'WARNING': return 'bg-water-warn/10';
-    case 'DANGER':  return 'bg-water-danger/10';
-    default:        return 'bg-water-invalid/10';
+    case 'SAFE':
+      return 'bg-emerald-50';
+    case 'WARNING':
+      return 'bg-amber-50';
+    case 'DANGER':
+      return 'bg-rose-50';
+    default:
+      return 'bg-slate-100';
   }
 }
 
 /** Get Tailwind border color class for a WaterStatus. */
 export function getStatusBorderColor(status: WaterStatus | string): string {
   switch (status) {
-    case 'SAFE':    return 'border-water-safe';
-    case 'WARNING': return 'border-water-warn';
-    case 'DANGER':  return 'border-water-danger';
-    default:        return 'border-water-invalid';
+    case 'SAFE':
+      return 'border-emerald-200';
+    case 'WARNING':
+      return 'border-amber-200';
+    case 'DANGER':
+      return 'border-rose-200';
+    default:
+      return 'border-slate-200';
   }
 }
 
 /** Get Tailwind color classes for MQTT connection status. */
 export function getMQTTStatusColor(status: MQTTConnectionStatus): string {
   switch (status) {
-    case 'connected':    return 'text-green-600';
-    case 'reconnecting': return 'text-yellow-600';
-    case 'disconnected': return 'text-slate-400';
-    case 'error':        return 'text-red-500';
-    case 'demo':         return 'text-amber-600';
-    default:             return 'text-slate-400';
+    case 'connected':
+      return 'text-emerald-700';
+    case 'reconnecting':
+      return 'text-amber-700';
+    case 'disconnected':
+      return 'text-slate-400';
+    case 'error':
+      return 'text-rose-700';
+    case 'demo':
+      return 'text-sky-700';
+    default:
+      return 'text-slate-400';
   }
 }
 
 /** Get background color for MQTT dot indicator. */
 export function getMQTTDotColor(status: MQTTConnectionStatus): string {
   switch (status) {
-    case 'connected':    return 'bg-green-500';
-    case 'reconnecting': return 'bg-yellow-500';
-    case 'disconnected': return 'bg-slate-300';
-    case 'error':        return 'bg-red-500';
-    case 'demo':         return 'bg-amber-500';
-    default:             return 'bg-slate-300';
+    case 'connected':
+      return 'bg-emerald-500';
+    case 'reconnecting':
+      return 'bg-amber-500';
+    case 'disconnected':
+      return 'bg-slate-300';
+    case 'error':
+      return 'bg-rose-500';
+    case 'demo':
+      return 'bg-sky-500';
+    default:
+      return 'bg-slate-300';
   }
 }
 

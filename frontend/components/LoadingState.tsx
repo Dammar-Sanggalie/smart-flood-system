@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────
-// components/LoadingState.tsx
+// components/LoadingState.tsx — Minimalist Loading State
 // ──────────────────────────────────────────────────
 'use client';
 
@@ -10,20 +10,20 @@ interface LoadingStateProps {
 }
 
 export default function LoadingState({
-  message = 'Loading dashboard…',
+  message = 'Initializing telemetry dashboard…',
 }: LoadingStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <div className="relative">
-        <div className="w-14 h-14 border-[3px] border-slate-200 border-t-cyan-500 rounded-full animate-spin" />
+    <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4 bg-white">
+      <div className="relative flex items-center justify-center">
+        <div className="w-12 h-12 border-2 border-slate-100 border-t-slate-900 rounded-full animate-spin" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <Droplets size={18} className="text-cyan-500" />
+          <Droplets size={16} className="text-sky-600" />
         </div>
       </div>
       <div className="text-center space-y-1">
-        <p className="text-slate-700 font-medium text-sm">{message}</p>
+        <p className="text-slate-900 font-semibold text-sm">{message}</p>
         <p className="text-slate-400 text-xs">
-          Connecting to backend…
+          Synchronizing with IoT telemetry daemon…
         </p>
       </div>
     </div>

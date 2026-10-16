@@ -1,17 +1,17 @@
 // ──────────────────────────────────────────────────
-// components/WaterLevelChart.tsx — Recharts history
+// components/WaterLevelChart.tsx — Precision Hydrograph Telemetry
 // ──────────────────────────────────────────────────
 'use client';
 
 import {
   ResponsiveContainer,
   ComposedChart,
+  Area,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ReferenceLine,
 } from 'recharts';
 import { formatTime } from '@/lib/utils';
@@ -29,20 +29,30 @@ function CustomTooltip({
   label,
 }: {
   active?: boolean;
-  payload?: Array<{ name: string; value: number; color: string; unit: string }>;
+  payload?: Array<{ name: string; value: number; color: string; unit?: string }>;
   label?: string;
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-lg text-xs">
-      <p className="text-slate-400 mb-2 font-medium">{label}</p>
+    <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-lg p-3 shadow-lg text-xs space-y-1.5 min-w-[140px]">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-1.5 text-slate-400 font-mono text-[10px]">
+        <span>TIME</span>
+        <span className="font-semibold text-slate-700">{label}</span>
+      </div>
       {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-2">
-          <span className="inline-block w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-slate-500">{p.name}:</span>
-          <span className="font-semibold text-slate-900">
+        <div key={p.name} className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5">
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: p.color }}
+            />
+            <span className="text-slate-500 capitalize">{p.name}</span>
+          </div>
+          <span className="font-mono font-bold text-slate-900">
             {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}
-            {p.unit}
+            <span className="text-[10px] text-slate-400 font-normal ml-0.5">
+              {p.name === 'Fill' ? '%' : 'cm'}
+            </span>
           </span>
         </div>
       ))}
@@ -52,10 +62,10 @@ function CustomTooltip({
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center h-48 text-center px-4">
-      <p className="text-slate-400 text-sm font-medium">No historical data yet</p>
+    <div className="flex flex-col items-center justify-center h-52 text-center px-4 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+      <p className="text-slate-600 text-sm font-semibold">No Telemetry Recorded</p>
       <p className="text-slate-400 text-xs mt-1 max-w-xs">
-        Data will appear here once readings are received from the device.
+        Historical hydrograph chart will render as readings stream in from the device.
       </p>
     </div>
   );
@@ -71,75 +81,125 @@ export default function WaterLevelChart({
     .filter((r) => r.sensorValid)
     .map((r) => ({
       time: formatTime(r.timestamp),
-      distanceCm: r.distanceCm,
-      waterLevelCm: r.waterLevelCm,
-      fillPercent: r.fillPercentage,
+      waterLevel: r.waterLevelCm,
+      fill: r.fillPercentage,
+      distance: r.distanceCm,
     }));
 
   return (
-    <div className="bg-white rounded-xl border border-bg-border p-4">
+    <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs">
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-slate-800">
-          Historical Readings
-        </h2>
-        {history.length > 0 && (
-          <span className="text-xs text-slate-400">
-            {history.length} reading{history.length !== 1 ? 's' : ''}
-          </span>
-        )}
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-900 tracking-tight">
+              Hydrograph Telemetry Log
+            </h2>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+              {history.length} pts
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+            Real-time water level fluctuations & capacity thresholds
+          </p>
+        </div>
+
+        {/* Legend */}
+        <div className="hidden sm:flex items-center gap-3 text-xs font-medium text-slate-500">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-0.5 bg-sky-600 rounded-full" />
+            <span>Water Level (cm)</span>
+          </div>
+          {warnThreshold && (
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-0.5 bg-amber-500 border-b border-dashed border-amber-500" />
+              <span className="text-amber-700">Warn ({warnThreshold}%)</span>
+            </div>
+          )}
+          {dangerThreshold && (
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-0.5 bg-rose-500 border-b border-dashed border-rose-500" />
+              <span className="text-rose-700">Danger ({dangerThreshold}%)</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {chartData.length === 0 ? (
         <EmptyState />
       ) : (
-        <ResponsiveContainer width="100%" height={240}>
-          <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: -8, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+        <div className="w-full h-60 sm:h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={chartData}
+              margin={{ top: 8, right: 12, left: -16, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="waterLevelGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0284c7" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#0284c7" stopOpacity={0.0} />
+                </linearGradient>
+              </defs>
 
-            <XAxis
-              dataKey="time"
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
-              tickLine={false}
-              axisLine={{ stroke: '#e2e8f0' }}
-              interval="preserveStartEnd"
-            />
+              {/* Minimal horizontal grid lines */}
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
 
-            <YAxis
-              yAxisId="cm"
-              orientation="left"
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-              unit=" cm"
-              width={48}
-            />
+              <XAxis
+                dataKey="time"
+                tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                tickLine={false}
+                axisLine={{ stroke: '#e2e8f0' }}
+                dy={6}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace' }}
+                tickLine={false}
+                axisLine={false}
+                dx={-4}
+              />
 
-            <YAxis
-              yAxisId="pct"
-              orientation="right"
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-              unit="%"
-              domain={[0, 100]}
-              width={40}
-            />
+              <Tooltip content={<CustomTooltip />} />
 
-            <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ fontSize: '11px', color: '#64748b', paddingTop: '8px' }} />
+              {/* Threshold reference lines */}
+              {warnThreshold && (
+                <ReferenceLine
+                  y={warnThreshold}
+                  stroke="#d97706"
+                  strokeDasharray="4 4"
+                  strokeWidth={1}
+                />
+              )}
+              {dangerThreshold && (
+                <ReferenceLine
+                  y={dangerThreshold}
+                  stroke="#e11d48"
+                  strokeDasharray="4 4"
+                  strokeWidth={1}
+                />
+              )}
 
-            {warnThreshold !== undefined && (
-              <ReferenceLine yAxisId="pct" y={warnThreshold} stroke="#d97706" strokeDasharray="4 2" label={{ value: 'WARN', fill: '#d97706', fontSize: 9 }} />
-            )}
-            {dangerThreshold !== undefined && (
-              <ReferenceLine yAxisId="pct" y={dangerThreshold} stroke="#dc2626" strokeDasharray="4 2" label={{ value: 'DANGER', fill: '#dc2626', fontSize: 9 }} />
-            )}
+              {/* Area fill under curve */}
+              <Area
+                type="monotone"
+                dataKey="waterLevel"
+                name="Water Level"
+                stroke="none"
+                fill="url(#waterLevelGrad)"
+              />
 
-            <Line yAxisId="cm" type="monotone" dataKey="distanceCm" name="Distance" stroke="#f87171" strokeWidth={1.5} strokeDasharray="5 3" dot={false} unit=" cm" activeDot={{ r: 3, fill: '#f87171' }} />
-            <Line yAxisId="cm" type="monotone" dataKey="waterLevelCm" name="Water Level" stroke="#0891b2" strokeWidth={2} dot={false} unit=" cm" activeDot={{ r: 4, fill: '#0891b2' }} />
-            <Line yAxisId="pct" type="monotone" dataKey="fillPercent" name="Fill %" stroke="#16a34a" strokeWidth={1.5} dot={false} unit="%" activeDot={{ r: 3, fill: '#16a34a' }} />
-          </ComposedChart>
-        </ResponsiveContainer>
+              {/* Main telemetry line */}
+              <Line
+                type="monotone"
+                dataKey="waterLevel"
+                name="Water Level"
+                stroke="#0284c7"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, stroke: '#ffffff', strokeWidth: 2, fill: '#0284c7' }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

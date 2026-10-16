@@ -1,10 +1,10 @@
 // ──────────────────────────────────────────────────
-// components/MetricCard.tsx
+// components/MetricCard.tsx — High-Precision Metric Card
 // ──────────────────────────────────────────────────
 'use client';
 
 import type { LucideIcon } from 'lucide-react';
-import { cn, getStatusBorderColor, getStatusColor } from '@/lib/utils';
+import { cn, getStatusColor } from '@/lib/utils';
 import type { WaterStatus } from '@/types';
 
 interface MetricCardProps {
@@ -16,6 +16,7 @@ interface MetricCardProps {
   subtext?: string;
   isInvalid?: boolean;
   highlight?: boolean;
+  progressPercent?: number;
 }
 
 export default function MetricCard({
@@ -27,45 +28,66 @@ export default function MetricCard({
   subtext,
   isInvalid = false,
   highlight = false,
+  progressPercent,
 }: MetricCardProps) {
-  const borderColor = status ? getStatusBorderColor(status) : 'border-transparent';
   const valueColor = status && !isInvalid ? getStatusColor(status) : 'text-slate-900';
 
   return (
     <div
       className={cn(
-        'relative bg-white rounded-xl border border-bg-border',
-        'p-3.5 flex flex-col gap-1 overflow-hidden transition-all duration-200',
-        'hover:shadow-sm hover:border-slate-300',
-        'border-l-[3px]',
-        borderColor,
-        highlight && 'ring-1 ring-cyan-500/20',
+        'group relative bg-white rounded-xl border border-slate-200/80 p-4',
+        'flex flex-col justify-between overflow-hidden transition-all duration-200',
+        'hover:border-slate-300 hover:shadow-card',
+        highlight && 'ring-1 ring-sky-500/30 border-sky-300',
       )}
     >
-      <div className="absolute top-2.5 right-2.5 text-slate-300">
-        <Icon size={16} />
+      {/* Top Header */}
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+          {label}
+        </span>
+        <div className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-slate-700 transition-colors">
+          <Icon size={14} />
+        </div>
       </div>
 
-      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider pr-6">
-        {label}
-      </p>
-
-      <div className="flex items-baseline gap-1 mt-0.5">
+      {/* Main Metric Value */}
+      <div className="flex items-baseline gap-1 my-1">
         <span
           className={cn(
-            'text-xl font-bold tracking-tight transition-colors duration-300',
+            'text-2xl sm:text-3xl font-bold font-mono tracking-tight tabular-nums transition-colors',
             isInvalid ? 'text-slate-300' : valueColor,
           )}
         >
           {isInvalid ? '—' : value}
         </span>
         {unit && !isInvalid && (
-          <span className="text-xs text-slate-400 font-medium">{unit}</span>
+          <span className="text-xs font-semibold text-slate-400 font-sans">{unit}</span>
         )}
       </div>
 
+      {/* Optional Progress Mini-bar */}
+      {typeof progressPercent === 'number' && !isInvalid && (
+        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1 mb-1.5">
+          <div
+            className={cn(
+              'h-full rounded-full transition-all duration-500',
+              status === 'DANGER'
+                ? 'bg-rose-500'
+                : status === 'WARNING'
+                ? 'bg-amber-500'
+                : 'bg-sky-500',
+            )}
+            style={{ width: `${Math.min(Math.max(progressPercent, 0), 100)}%` }}
+          />
+        </div>
+      )}
+
+      {/* Subtext info */}
       {subtext && (
-        <p className="text-[10px] text-slate-400 mt-0.5 truncate">{subtext}</p>
+        <div className="pt-2 mt-auto border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+          <span className="truncate">{subtext}</span>
+        </div>
       )}
     </div>
   );

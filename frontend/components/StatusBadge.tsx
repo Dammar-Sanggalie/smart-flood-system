@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────
-// components/StatusBadge.tsx
+// components/StatusBadge.tsx — Minimalist Status Badge
 // ──────────────────────────────────────────────────
 'use client';
 
@@ -15,12 +15,12 @@ interface StatusBadgeProps {
 }
 
 const sizeClasses = {
-  sm: 'text-xs px-2 py-0.5 gap-1',
-  md: 'text-sm px-2.5 py-1 gap-1.5',
-  lg: 'text-base px-3 py-1.5 gap-2',
+  sm: 'text-[11px] px-2 py-0.5 gap-1.5',
+  md: 'text-xs px-2.5 py-1 gap-1.5',
+  lg: 'text-sm px-3 py-1.5 gap-2',
 };
 
-const iconSizes = { sm: 12, md: 14, lg: 16 };
+const iconSizes = { sm: 12, md: 13, lg: 15 };
 
 export default function StatusBadge({
   status,
@@ -30,28 +30,69 @@ export default function StatusBadge({
 }: StatusBadgeProps) {
   if (isStale) {
     return (
-      <span className={cn('inline-flex items-center font-semibold rounded-full border', 'bg-slate-100 text-slate-500 border-slate-200', sizeClasses[size])}>
-        {showIcon && <Clock size={iconSizes[size]} />}
-        STALE
+      <span
+        className={cn(
+          'inline-flex items-center font-medium rounded-md border',
+          'bg-slate-50 text-slate-600 border-slate-200',
+          sizeClasses[size],
+        )}
+      >
+        {showIcon && <Clock size={iconSizes[size]} className="text-slate-400" />}
+        <span className="font-semibold tracking-wide">STALE</span>
       </span>
     );
   }
 
-  const variants: Record<string, { classes: string; label: string; Icon: React.ElementType }> = {
-    SAFE: { classes: 'bg-green-50 text-green-600 border-green-200', label: 'SAFE', Icon: ShieldCheck },
-    WARNING: { classes: 'bg-amber-50 text-amber-600 border-amber-200', label: 'WARNING', Icon: AlertTriangle },
-    DANGER: { classes: 'bg-red-50 text-red-600 border-red-200 animate-pulse', label: 'DANGER', Icon: ShieldAlert },
-    INVALID: { classes: 'bg-slate-100 text-slate-500 border-slate-200', label: 'INVALID', Icon: HelpCircle },
-    UNKNOWN: { classes: 'bg-slate-100 text-slate-500 border-slate-200', label: 'UNKNOWN', Icon: HelpCircle },
+  const variants: Record<
+    string,
+    { classes: string; dot: string; label: string; Icon: React.ElementType }
+  > = {
+    SAFE: {
+      classes: 'bg-emerald-50/70 text-emerald-800 border-emerald-200',
+      dot: 'bg-emerald-500',
+      label: 'SAFE',
+      Icon: ShieldCheck,
+    },
+    WARNING: {
+      classes: 'bg-amber-50/70 text-amber-800 border-amber-200',
+      dot: 'bg-amber-500',
+      label: 'WARNING',
+      Icon: AlertTriangle,
+    },
+    DANGER: {
+      classes: 'bg-rose-50/80 text-rose-800 border-rose-200 animate-pulse',
+      dot: 'bg-rose-500',
+      label: 'DANGER',
+      Icon: ShieldAlert,
+    },
+    INVALID: {
+      classes: 'bg-slate-50 text-slate-600 border-slate-200',
+      dot: 'bg-slate-400',
+      label: 'INVALID',
+      Icon: HelpCircle,
+    },
+    UNKNOWN: {
+      classes: 'bg-slate-50 text-slate-600 border-slate-200',
+      dot: 'bg-slate-400',
+      label: 'UNKNOWN',
+      Icon: HelpCircle,
+    },
   };
 
   const variant = variants[status] ?? variants.UNKNOWN;
-  const { classes, label, Icon } = variant;
+  const { classes, dot, label, Icon } = variant;
 
   return (
-    <span className={cn('inline-flex items-center font-semibold rounded-full border', classes, sizeClasses[size])}>
+    <span
+      className={cn(
+        'inline-flex items-center font-medium rounded-md border tracking-wide',
+        classes,
+        sizeClasses[size],
+      )}
+    >
+      <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', dot)} />
       {showIcon && <Icon size={iconSizes[size]} />}
-      {label}
+      <span className="font-semibold">{label}</span>
     </span>
   );
 }
