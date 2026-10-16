@@ -1,5 +1,6 @@
 // ──────────────────────────────────────────────────
 // components/TankScene.tsx — Precision Industrial 3D Digital Twin
+// with Dynamic Fluid Inertia & Sloshing Physics
 // ──────────────────────────────────────────────────
 'use client';
 
@@ -22,23 +23,123 @@ function getWaterHex(status: WaterStatus): string {
   return WATER_COLORS[status] ?? '#0284c7';
 }
 
-// ── Animated Water Surface Wave ───────────────────
+// ── Slosh Physics State Interface ──────────────────
+interface SloshPhysics {
+  posX: number;
+  posZ: number;
+  velX: number;
+  velZ: number;
+  speed: number;
+}
+
+// ── Subsurface Micro-Bubbles (Fluid Particles) ────
+function SuspendedBubbles({
+  count = 18,
+  tankW,
+  tankD,
+  tankH,
+  currentFill,
+  sloshRef,
+}: {
+  count?: number;
+  tankW: number;
+  tankD: number;
+  tankH: number;
+  currentFill: React.MutableRefObject<number>;
+  sloshRef: React.MutableRefObject<SloshPhysics>;
+}) {
+  const pointsRef = useRef<THREE.Points>(null);
+
+  const [positions, offsets] = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const offs = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const ix = i * 3;
+      pos[ix] = (Math.random() - 0.5) * tankW * 0.75;
+      pos[ix + 1] = 0;
+      pos[ix + 2] = (Math.random() - 0.5) * tankD * 0.75;
+
+      offs[ix] = Math.random() * Math.PI * 2; // phase
+      offs[ix + 1] = 0.1 + Math.random() * 0.8; // height ratio in water
+      offs[ix + 2] = 0.6 + Math.random() * 0.8; // sway speed
+    }
+    return [pos, offs];
+  }, [count, tankW, tankD]);
+
+  useFrame(({ clock }) => {
+    if (!pointsRef.current) return;
+    const t = clock.getElapsedTime();
+    const slosh = sloshRef.current;
+    const fill = currentFill.current;
+    const waterHeight = fill * tankH;
+    const waterBaseY = -tankH / 2;
+
+    const posAttr = pointsRef.current.geometry.attributes.position;
+    for (let i = 0; i < count; i++) {
+      const ix = i * 3;
+      const initialPhase = offsets[ix];
+      const hRatio = offsets[ix + 1];
+      const driftSpd = offsets[ix + 2];
+
+      // Vertical position inside water column
+      posAttr.array[ix + 1] =
+        waterBaseY + hRatio * waterHeight + Math.sin(t * driftSpd + initialPhase) * 0.008;
+
+      // Swirl horizontally in response to rotational slosh velocity
+      posAttr.array[ix] += slosh.velX * 0.0012;
+      posAttr.array[ix + 2] += slosh.velZ * 0.0012;
+
+      // Bound within tank inner perimeter
+      const maxW = (tankW * 0.85) / 2;
+      const maxD = (tankD * 0.85) / 2;
+      if (posAttr.array[ix] > maxW) posAttr.array[ix] = -maxW;
+      if (posAttr.array[ix] < -maxW) posAttr.array[ix] = maxW;
+      if (posAttr.array[ix + 2] > maxD) posAttr.array[ix + 2] = -maxD;
+      if (posAttr.array[ix + 2] < -maxD) posAttr.array[ix + 2] = maxD;
+    }
+    posAttr.needsUpdate = true;
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={count}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.018}
+        color="#bae6fd"
+        transparent
+        opacity={0.7}
+        sizeAttenuation
+      />
+    </points>
+  );
+}
+
+// ── Animated Water Surface Wave with Dynamic Sloshing ──
 function WaterSurface({
   meshRef,
   width,
   depth,
   tankH,
   color,
+  sloshRef,
 }: {
   meshRef: React.RefObject<THREE.Mesh>;
   width: number;
   depth: number;
   tankH: number;
   color: string;
+  sloshRef: React.MutableRefObject<SloshPhysics>;
 }) {
   const surfaceRef = useRef<THREE.Mesh>(null);
   const geom = useMemo(() => {
-    const g = new THREE.PlaneGeometry(width, depth, 32, 32);
+    const g = new THREE.PlaneGeometry(width, depth, 36, 36);
     g.rotateX(-Math.PI / 2);
     return g;
   }, [width, depth]);
@@ -50,10 +151,21 @@ function WaterSurface({
   useFrame(({ clock }) => {
     if (!surfaceRef.current || !meshRef.current) return;
     const t = clock.getElapsedTime();
+    const slosh = sloshRef.current;
 
     const waterScaleY = meshRef.current.scale.y;
     const waterY = -tankH / 2 + tankH * waterScaleY;
     surfaceRef.current.position.y = waterY;
+
+    // Fluid surface tilts dynamically in 3D according to rotational inertia!
+    surfaceRef.current.rotation.z = -slosh.posX;
+    surfaceRef.current.rotation.x = slosh.posZ;
+
+    // Dynamic wave ripples react to slosh energy & rotation speed
+    const sloshEnergy = Math.hypot(slosh.posX, slosh.posZ);
+    const waveAmp = 0.0025 + sloshEnergy * 0.04;
+    const waveFreq = 10.0 + sloshEnergy * 8.0;
+    const waveSpeed = 2.2 + sloshEnergy * 6.5;
 
     const pos = surfaceRef.current.geometry.attributes.position;
     for (let i = 0; i < pos.count; i++) {
@@ -61,8 +173,8 @@ function WaterSurface({
       const x = basePositions[ix];
       const z = basePositions[ix + 2];
       pos.array[ix + 1] =
-        Math.sin(x * 10 + t * 2.2) * 0.0025 +
-        Math.cos(z * 10 + t * 1.8) * 0.0025;
+        Math.sin(x * waveFreq + t * waveSpeed + slosh.posX * 12) * waveAmp +
+        Math.cos(z * waveFreq + t * (waveSpeed * 0.9) + slosh.posZ * 12) * (waveAmp * 0.85);
     }
     pos.needsUpdate = true;
   });
@@ -72,19 +184,20 @@ function WaterSurface({
       <meshPhysicalMaterial
         color={color}
         transparent
-        opacity={0.75}
-        roughness={0.03}
-        metalness={0.05}
-        transmission={0.4}
+        opacity={0.82}
+        roughness={0.02}
+        metalness={0.06}
+        transmission={0.42}
+        ior={1.333}
         clearcoat={1}
-        clearcoatRoughness={0.04}
+        clearcoatRoughness={0.03}
         side={THREE.DoubleSide}
       />
     </mesh>
   );
 }
 
-// ── Water Body (Dynamic Fluid Mesh) ───────────────
+// ── Water Body (Dynamic Fluid Volume) ─────────────
 function WaterBody({
   targetFill,
   tankW,
@@ -92,6 +205,7 @@ function WaterBody({
   tankH,
   status,
   frozen,
+  sloshRef,
 }: {
   targetFill: number;
   tankW: number;
@@ -99,6 +213,7 @@ function WaterBody({
   tankH: number;
   status: WaterStatus;
   frozen: boolean;
+  sloshRef: React.MutableRefObject<SloshPhysics>;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const currentFillRef = useRef(targetFill);
@@ -120,6 +235,11 @@ function WaterBody({
     meshRef.current.scale.y = waterHeight / tankH;
     meshRef.current.position.y = -tankH / 2 + waterHeight / 2;
 
+    // Subtle fluid volume tilt response with inertia
+    const slosh = sloshRef.current;
+    meshRef.current.rotation.z = -slosh.posX * 0.55;
+    meshRef.current.rotation.x = slosh.posZ * 0.55;
+
     const mat = meshRef.current.material as THREE.MeshPhysicalMaterial;
     mat.color.copy(colorRef.current);
   });
@@ -134,27 +254,43 @@ function WaterBody({
         <meshPhysicalMaterial
           color={waterColor}
           transparent
-          opacity={0.58}
-          roughness={0.04}
-          metalness={0.05}
-          transmission={0.65}
+          opacity={0.65}
+          roughness={0.03}
+          metalness={0.04}
+          transmission={0.68}
+          ior={1.333}
           side={THREE.DoubleSide}
         />
       </mesh>
-      {!frozen && targetFill > 0.01 && (
+
+      {/* Dynamic Animated Surface */}
+      {!frozen && targetFill > 0.005 && (
         <WaterSurface
           meshRef={meshRef}
           width={innerW}
           depth={innerD}
           tankH={tankH}
           color={waterColor}
+          sloshRef={sloshRef}
+        />
+      )}
+
+      {/* Floating Micro-Bubbles inside water volume */}
+      {!frozen && targetFill > 0.06 && (
+        <SuspendedBubbles
+          count={16}
+          tankW={innerW}
+          tankD={innerD}
+          tankH={tankH}
+          currentFill={currentFillRef}
+          sloshRef={sloshRef}
         />
       )}
     </>
   );
 }
 
-// ── Precision Reservoir Structure ─────────────────
+// ── Open-Top Precision Reservoir Structure ────────
 function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
   const t = 0.01;
 
@@ -174,7 +310,7 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* Back Glass */}
+      {/* Back Optical Glass */}
       <mesh position={[0, 0, -d / 2]}>
         <boxGeometry args={[w, h, t]} />
         <meshPhysicalMaterial
@@ -188,7 +324,7 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* Left Glass */}
+      {/* Left Optical Glass */}
       <mesh position={[-w / 2, 0, 0]}>
         <boxGeometry args={[t, h, d]} />
         <meshPhysicalMaterial
@@ -202,7 +338,7 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* Right Glass */}
+      {/* Right Optical Glass */}
       <mesh position={[w / 2, 0, 0]}>
         <boxGeometry args={[t, h, d]} />
         <meshPhysicalMaterial
@@ -223,11 +359,29 @@ function ReservoirChamber({ w, h, d }: { w: number; h: number; d: number }) {
         <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
       </mesh>
 
-      {/* Top Frame Rim */}
-      <mesh position={[0, h / 2 + 0.005, 0]}>
-        <boxGeometry args={[w + 0.03, 0.01, d + 0.03]} />
-        <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
-      </mesh>
+      {/* Top Open Frame Rim (Hollow perimeter bars so interior water is 100% visible from above) */}
+      <group position={[0, h / 2 + 0.005, 0]}>
+        {/* Front Bar */}
+        <mesh position={[0, 0, d / 2]}>
+          <boxGeometry args={[w + 0.02, 0.01, 0.014]} />
+          <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
+        </mesh>
+        {/* Back Bar */}
+        <mesh position={[0, 0, -d / 2]}>
+          <boxGeometry args={[w + 0.02, 0.01, 0.014]} />
+          <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
+        </mesh>
+        {/* Left Bar */}
+        <mesh position={[-w / 2, 0, 0]}>
+          <boxGeometry args={[0.014, 0.01, d - 0.014]} />
+          <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
+        </mesh>
+        {/* Right Bar */}
+        <mesh position={[w / 2, 0, 0]}>
+          <boxGeometry args={[0.014, 0.01, d - 0.014]} />
+          <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
+        </mesh>
+      </group>
 
       {/* Precision corner pillars (Stainless Steel) */}
       {[
@@ -331,21 +485,21 @@ function SensorTransducer({
       </mesh>
 
       {/* Ultrasonic Transmitter & Receiver Transducers */}
-      <mesh position={[-0.03, 0, 0]} rotation={[0, 0, 0]}>
+      <mesh position={[-0.03, 0, 0]}>
         <cylinderGeometry args={[0.013, 0.013, 0.022, 24]} />
         <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.8} />
       </mesh>
-      <mesh position={[0.03, 0, 0]} rotation={[0, 0, 0]}>
+      <mesh position={[0.03, 0, 0]}>
         <cylinderGeometry args={[0.013, 0.013, 0.022, 24]} />
         <meshStandardMaterial color="#cbd5e1" roughness={0.2} metalness={0.8} />
       </mesh>
 
       {/* Transducer mesh face (black centers) */}
-      <mesh position={[-0.03, -0.0115, 0]} rotation={[0, 0, 0]}>
+      <mesh position={[-0.03, -0.0115, 0]}>
         <cylinderGeometry args={[0.009, 0.009, 0.002, 24]} />
         <meshBasicMaterial color="#0f172a" />
       </mesh>
-      <mesh position={[0.03, -0.0115, 0]} rotation={[0, 0, 0]}>
+      <mesh position={[0.03, -0.0115, 0]}>
         <cylinderGeometry args={[0.009, 0.009, 0.002, 24]} />
         <meshBasicMaterial color="#0f172a" />
       </mesh>
@@ -404,7 +558,7 @@ function UltrasonicBeam({
   );
 }
 
-// ── Precision 3D Scene Assembly ───────────────────
+// ── Precision 3D Scene Assembly with Sloshing Physics ────
 interface TankSceneProps {
   distanceCm: number;
   waterLevelCm: number;
@@ -434,9 +588,66 @@ function Scene({
   const waterY = -tankH / 2 + (fillPercentage / 100) * tankH;
   const frozen = !sensorValid || isStale;
 
+  // ── Fluid Sloshing Physics Simulation ────────────
+  const sloshRef = useRef<SloshPhysics>({
+    posX: 0,
+    posZ: 0,
+    velX: 0,
+    velZ: 0,
+    speed: 0,
+  });
+
+  const prevCamAngle = useRef({ theta: 0, phi: 0 });
+  const isFirstFrame = useRef(true);
+
+  useFrame(({ camera }, delta) => {
+    const x = camera.position.x;
+    const y = camera.position.y;
+    const z = camera.position.z;
+    const r = Math.sqrt(x * x + y * y + z * z);
+    const theta = Math.atan2(x, z);
+    const phi = Math.acos(THREE.MathUtils.clamp(y / r, -1, 1));
+
+    if (isFirstFrame.current) {
+      prevCamAngle.current = { theta, phi };
+      isFirstFrame.current = false;
+      return;
+    }
+
+    let dTheta = theta - prevCamAngle.current.theta;
+    if (dTheta > Math.PI) dTheta -= 2 * Math.PI;
+    if (dTheta < -Math.PI) dTheta += 2 * Math.PI;
+    const dPhi = phi - prevCamAngle.current.phi;
+
+    prevCamAngle.current = { theta, phi };
+
+    const dt = Math.min(delta, 0.05);
+
+    // Rotational impulse on liquid (sway/centrifugal reaction)
+    const impulseX = -dTheta * 32.0;
+    const impulseZ = dPhi * 32.0;
+
+    // Harmonic fluid oscillator (restoring gravity vs damping viscosity)
+    const springK = 30.0;
+    const damping = 3.4;
+
+    const slosh = sloshRef.current;
+    slosh.velX += (-springK * slosh.posX - damping * slosh.velX + impulseX) * dt;
+    slosh.velZ += (-springK * slosh.posZ - damping * slosh.velZ + impulseZ) * dt;
+
+    slosh.posX += slosh.velX * dt;
+    slosh.posZ += slosh.velZ * dt;
+
+    // Physical tilt limits within the container walls
+    slosh.posX = THREE.MathUtils.clamp(slosh.posX, -0.22, 0.22);
+    slosh.posZ = THREE.MathUtils.clamp(slosh.posZ, -0.22, 0.22);
+
+    slosh.speed = THREE.MathUtils.lerp(slosh.speed, Math.hypot(dTheta, dPhi) / dt, 0.1);
+  });
+
   return (
     <>
-      {/* Pure Studio Lighting */}
+      {/* Studio Lighting */}
       <ambientLight intensity={1.15} />
       <directionalLight
         position={[4, 8, 4]}
@@ -448,10 +659,10 @@ function Scene({
       <pointLight position={[0, sensorY + 0.2, 0]} intensity={0.4} color="#38bdf8" />
 
       <group position={[0, 0, 0]}>
-        {/* Reservoir Chamber */}
+        {/* Open-Top Optical Reservoir Chamber */}
         <ReservoirChamber w={tankW} h={tankH} d={tankD} />
 
-        {/* Dynamic Water Fluid Body */}
+        {/* Dynamic Water Fluid Body with Sloshing Reaction */}
         <WaterBody
           targetFill={sensorValid && !isStale ? fillPercentage / 100 : 0}
           tankW={tankW}
@@ -459,6 +670,7 @@ function Scene({
           tankH={tankH}
           status={status}
           frozen={frozen}
+          sloshRef={sloshRef}
         />
 
         {/* Graduated Metric Scale */}
