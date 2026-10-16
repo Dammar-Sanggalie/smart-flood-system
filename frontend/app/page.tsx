@@ -284,8 +284,8 @@ export default function DashboardPage() {
     }, 100);
   }, []);
 
-  // ── Loading Screen ──
-  if (isLoading) {
+  // ── Initial Loading Screen (Only if no data cached yet) ──
+  if (isLoading && !reading && !config) {
     return (
       <div className="min-h-screen bg-[#f8fafc]">
         <LoadingState message="Menghubungkan ke sistem monitoring Smart Flood…" />

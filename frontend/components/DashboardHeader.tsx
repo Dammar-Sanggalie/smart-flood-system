@@ -21,9 +21,8 @@ interface DashboardHeaderProps {
 function BrandLogo() {
   return (
     <div className="flex items-center gap-3">
-      {/* Dynamic Hydro-Sonar SVG Emblem */}
-      <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 p-[1px] shadow-sm flex items-center justify-center overflow-hidden shrink-0 group">
-        <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-blue-500/0 opacity-60" />
+      {/* Dynamic Hydro-Sonar SVG Emblem - Clean Light Aesthetic */}
+      <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-100/70 border border-sky-200/80 shadow-sm flex items-center justify-center overflow-hidden shrink-0 group">
         <svg
           viewBox="0 0 36 36"
           fill="none"
@@ -33,17 +32,17 @@ function BrandLogo() {
           {/* Sonar Radar Arcs */}
           <path
             d="M6 18C6 11.3726 11.3726 6 18 6"
-            stroke="url(#logoGrad1)"
+            stroke="#0284c7"
             strokeWidth="2.2"
             strokeLinecap="round"
             strokeOpacity="0.4"
           />
           <path
             d="M10 18C10 13.5817 13.5817 10 18 10"
-            stroke="url(#logoGrad1)"
+            stroke="#0284c7"
             strokeWidth="2.2"
             strokeLinecap="round"
-            strokeOpacity="0.75"
+            strokeOpacity="0.8"
           />
           {/* Central Water Droplet */}
           <path
@@ -58,17 +57,13 @@ function BrandLogo() {
             ry="2.5"
             transform="rotate(-25 16.5 21.5)"
             fill="white"
-            fillOpacity="0.65"
+            fillOpacity="0.85"
           />
           {/* Gradients */}
           <defs>
-            <linearGradient id="logoGrad1" x1="6" y1="6" x2="18" y2="18" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#38bdf8" />
-              <stop offset="1" stopColor="#0284c7" />
-            </linearGradient>
             <linearGradient id="logoGrad2" x1="13" y1="13" x2="23" y2="27.5" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#38bdf8" />
-              <stop offset="1" stopColor="#2563eb" />
+              <stop stopColor="#0ea5e9" />
+              <stop offset="1" stopColor="#1d4ed8" />
             </linearGradient>
           </defs>
         </svg>
