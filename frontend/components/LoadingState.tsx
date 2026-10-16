@@ -15,15 +15,15 @@ export default function LoadingState({
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
       <div className="relative">
-        <div className="w-16 h-16 border-4 border-bg-border border-t-blue-500 rounded-full animate-spin" />
+        <div className="w-14 h-14 border-[3px] border-slate-200 border-t-cyan-500 rounded-full animate-spin" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <Droplets size={20} className="text-blue-400" />
+          <Droplets size={18} className="text-cyan-500" />
         </div>
       </div>
       <div className="text-center space-y-1">
-        <p className="text-slate-300 font-medium text-sm">{message}</p>
-        <p className="text-slate-600 text-xs">
-          Connecting to Smart Flood Detection backend…
+        <p className="text-slate-700 font-medium text-sm">{message}</p>
+        <p className="text-slate-400 text-xs">
+          Connecting to backend…
         </p>
       </div>
     </div>

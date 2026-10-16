@@ -50,9 +50,9 @@ function FieldInput({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-slate-400">
+      <label className="text-xs font-medium text-slate-500">
         {label}
-        {hint && <span className="text-slate-600 ml-1">({hint})</span>}
+        {hint && <span className="text-slate-400 ml-1">({hint})</span>}
       </label>
       <div className="flex items-center gap-2">
         <input
@@ -63,17 +63,17 @@ function FieldInput({
           step={step}
           onChange={(e) => onChange(name, parseFloat(e.target.value) || 0)}
           className={cn(
-            'flex-1 bg-bg-dark border rounded-lg px-3 py-2 text-sm text-white',
+            'flex-1 bg-slate-50 border rounded-lg px-3 py-2 text-sm text-slate-900',
             'focus:outline-none focus:ring-1 transition-colors',
             error
-              ? 'border-red-500 focus:ring-red-500'
-              : 'border-bg-border focus:ring-blue-500 focus:border-blue-500',
+              ? 'border-red-400 focus:ring-red-400'
+              : 'border-slate-200 focus:ring-cyan-500 focus:border-cyan-500',
           )}
         />
-        <span className="text-xs text-slate-500 w-8 shrink-0">{unit}</span>
+        <span className="text-xs text-slate-400 w-8 shrink-0">{unit}</span>
       </div>
       {error && (
-        <p className="text-xs text-red-400 flex items-center gap-1">
+        <p className="text-xs text-red-500 flex items-center gap-1">
           <AlertCircle size={10} />
           {error}
         </p>
@@ -101,14 +101,12 @@ export default function TankConfigForm({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [saveError, setSaveError] = useState('');
 
-  // Sync prop config → form state
   useEffect(() => {
     if (config) setFormValues(config);
   }, [config]);
 
   const handleChange = (name: keyof TankConfig, value: number) => {
     setFormValues((prev) => ({ ...prev, [name]: value }));
-    // Clear field error on change
     setErrors((prev) => ({ ...prev, [name]: undefined }));
     setSaveStatus('idle');
   };
@@ -171,157 +169,74 @@ export default function TankConfigForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Tank Dimensions */}
       <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
           Tank Dimensions
         </h4>
         <div className="space-y-3">
-          <FieldInput
-            label="Length"
-            name="lengthCm"
-            value={formValues.lengthCm}
-            unit="cm"
-            error={errors.lengthCm}
-            onChange={handleChange}
-            min={1}
-          />
-          <FieldInput
-            label="Width"
-            name="widthCm"
-            value={formValues.widthCm}
-            unit="cm"
-            error={errors.widthCm}
-            onChange={handleChange}
-            min={1}
-          />
-          <FieldInput
-            label="Depth"
-            name="depthCm"
-            value={formValues.depthCm}
-            unit="cm"
-            error={errors.depthCm}
-            onChange={handleChange}
-            min={1}
-          />
-          <FieldInput
-            label="Sensor Height from Bottom"
-            name="sensorHeightCm"
-            value={formValues.sensorHeightCm}
-            unit="cm"
-            hint="must ≥ depth"
-            error={errors.sensorHeightCm}
-            onChange={handleChange}
-            min={1}
-          />
+          <FieldInput label="Length" name="lengthCm" value={formValues.lengthCm} unit="cm" error={errors.lengthCm} onChange={handleChange} min={1} />
+          <FieldInput label="Width" name="widthCm" value={formValues.widthCm} unit="cm" error={errors.widthCm} onChange={handleChange} min={1} />
+          <FieldInput label="Depth" name="depthCm" value={formValues.depthCm} unit="cm" error={errors.depthCm} onChange={handleChange} min={1} />
+          <FieldInput label="Sensor Height from Bottom" name="sensorHeightCm" value={formValues.sensorHeightCm} unit="cm" hint="must ≥ depth" error={errors.sensorHeightCm} onChange={handleChange} min={1} />
         </div>
-
-        {/* Capacity Preview */}
-        <div className="mt-3 p-2.5 bg-bg-dark rounded-lg border border-bg-border">
-          <p className="text-xs text-slate-500">
+        <div className="mt-3 p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+          <p className="text-xs text-slate-400">
             Tank capacity:{' '}
-            <span className="text-blue-400 font-semibold">{capacity.toFixed(1)} liters</span>
+            <span className="text-cyan-600 font-semibold">{capacity.toFixed(1)} liters</span>
           </p>
         </div>
       </div>
 
-      {/* Alert Thresholds */}
       <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
           Alert Thresholds
         </h4>
         <div className="space-y-3">
-          <FieldInput
-            label="Warning Level"
-            name="warnThresholdPercent"
-            value={formValues.warnThresholdPercent}
-            unit="%"
-            error={errors.warnThresholdPercent}
-            onChange={handleChange}
-            min={1}
-            max={99}
-          />
-          <FieldInput
-            label="Danger Level"
-            name="dangerThresholdPercent"
-            value={formValues.dangerThresholdPercent}
-            unit="%"
-            error={errors.dangerThresholdPercent}
-            onChange={handleChange}
-            min={1}
-            max={100}
-          />
-
-          {/* Visual threshold bar */}
-          <div className="relative h-3 bg-bg-dark rounded-full border border-bg-border overflow-hidden">
-            <div
-              className="absolute left-0 top-0 bottom-0 bg-green-500/40 rounded-full"
-              style={{ width: `${formValues.warnThresholdPercent}%` }}
-            />
-            <div
-              className="absolute top-0 bottom-0 bg-amber-500/40"
-              style={{
-                left: `${formValues.warnThresholdPercent}%`,
-                width: `${formValues.dangerThresholdPercent - formValues.warnThresholdPercent}%`,
-              }}
-            />
-            <div
-              className="absolute top-0 right-0 bottom-0 bg-red-500/40 rounded-r-full"
-              style={{
-                left: `${formValues.dangerThresholdPercent}%`,
-              }}
-            />
+          <FieldInput label="Warning Level" name="warnThresholdPercent" value={formValues.warnThresholdPercent} unit="%" error={errors.warnThresholdPercent} onChange={handleChange} min={1} max={99} />
+          <FieldInput label="Danger Level" name="dangerThresholdPercent" value={formValues.dangerThresholdPercent} unit="%" error={errors.dangerThresholdPercent} onChange={handleChange} min={1} max={100} />
+          <div className="relative h-3 bg-slate-100 rounded-full border border-slate-200 overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 bg-green-400/50 rounded-full" style={{ width: `${formValues.warnThresholdPercent}%` }} />
+            <div className="absolute top-0 bottom-0 bg-amber-400/50" style={{ left: `${formValues.warnThresholdPercent}%`, width: `${formValues.dangerThresholdPercent - formValues.warnThresholdPercent}%` }} />
+            <div className="absolute top-0 right-0 bottom-0 bg-red-400/50 rounded-r-full" style={{ left: `${formValues.dangerThresholdPercent}%` }} />
           </div>
-          <div className="flex justify-between text-[10px] text-slate-600">
+          <div className="flex justify-between text-[10px] text-slate-400">
             <span>0%</span>
-            <span className="text-amber-500">{formValues.warnThresholdPercent}% warn</span>
-            <span className="text-red-500">{formValues.dangerThresholdPercent}% danger</span>
+            <span className="text-amber-600">{formValues.warnThresholdPercent}% warn</span>
+            <span className="text-red-600">{formValues.dangerThresholdPercent}% danger</span>
             <span>100%</span>
           </div>
         </div>
       </div>
 
-      {/* Timing */}
       <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
           Timing
         </h4>
-        <FieldInput
-          label="Stale Data Timeout"
-          name="staleTimeoutSeconds"
-          value={formValues.staleTimeoutSeconds}
-          unit="s"
-          error={errors.staleTimeoutSeconds}
-          onChange={handleChange}
-          min={5}
-        />
+        <FieldInput label="Stale Data Timeout" name="staleTimeoutSeconds" value={formValues.staleTimeoutSeconds} unit="s" error={errors.staleTimeoutSeconds} onChange={handleChange} min={5} />
       </div>
 
-      {/* Save Status */}
       {saveStatus === 'success' && (
-        <div className="flex items-center gap-2 text-green-400 text-xs bg-green-500/10 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2 text-green-600 text-xs bg-green-50 rounded-lg px-3 py-2">
           <CheckCircle size={14} />
           Konfigurasi berhasil disimpan!
         </div>
       )}
       {saveStatus === 'error' && (
-        <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2 text-red-500 text-xs bg-red-50 rounded-lg px-3 py-2">
           <AlertCircle size={14} />
           {saveError || 'Gagal menyimpan konfigurasi'}
         </div>
       )}
 
-      {/* Submit */}
       <button
         type="submit"
         disabled={disabled}
         className={cn(
           'w-full flex items-center justify-center gap-2',
-          'bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700',
-          'text-white disabled:text-slate-500',
+          'bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-300',
+          'text-white disabled:text-slate-400',
           'text-sm font-semibold rounded-lg px-4 py-2.5',
           'transition-colors duration-150',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-bg-dark',
         )}
       >
         {disabled ? (

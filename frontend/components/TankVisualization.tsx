@@ -6,19 +6,18 @@
 
 import dynamic from 'next/dynamic';
 import { useState, useCallback } from 'react';
-import { RotateCcw, AlertTriangle, Clock } from 'lucide-react';
+import { RotateCcw, AlertTriangle, Clock, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import StatusBadge from './StatusBadge';
 import type { SensorReading, TankConfig, WaterStatus } from '@/types';
 
-// Load the heavy 3D scene with no SSR
 const TankScene = dynamic(() => import('./TankScene'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full text-slate-500 text-sm">
+    <div className="flex items-center justify-center h-full text-slate-400 text-sm">
       <div className="flex flex-col items-center gap-2">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <span>Loading 3D visualization…</span>
+        <div className="w-7 h-7 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
+        <span className="text-xs">Loading 3D view…</span>
       </div>
     </div>
   ),
@@ -57,15 +56,12 @@ export default function TankVisualization({
     setResetKey((k) => k + 1);
   }, []);
 
-  const showOverlay = !reading || !sensorValid || isStale;
-
   return (
-    <div className="bg-bg-card rounded-xl border border-bg-border overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-bg-border">
+    <div className="bg-white rounded-xl border border-bg-border overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-bg-border">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-slate-300">
-            3D Tank Visualization
+          <h2 className="text-sm font-semibold text-slate-800">
+            Tank Visualization
           </h2>
           {reading && (
             <StatusBadge
@@ -78,28 +74,27 @@ export default function TankVisualization({
 
         <div className="flex items-center gap-2">
           {config && (
-            <span className="text-xs text-slate-500 hidden sm:block">
-              {config.lengthCm}×{config.widthCm}×{config.depthCm} cm
+            <span className="text-[10px] text-slate-400 hidden sm:block font-mono">
+              {config.lengthCm}×{config.widthCm}×{config.depthCm}cm
             </span>
           )}
           <button
             onClick={handleReset}
             title="Reset camera"
-            className={cn(
-              'p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-bg-border',
-              'transition-colors duration-150',
-            )}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-bg-hover transition-colors"
           >
-            <RotateCcw size={15} />
+            <RotateCcw size={14} />
           </button>
         </div>
       </div>
 
-      {/* Canvas area */}
-      <div className="relative" style={{ height: '380px' }}>
+      <div className="relative" style={{ height: '360px' }}>
         <div
           key={resetKey}
-          className="w-full h-full bg-gradient-to-b from-slate-900 to-bg-dark"
+          className="w-full h-full"
+          style={{
+            background: 'radial-gradient(ellipse at center, #e0f2fe 0%, #f1f5f9 70%)',
+          }}
         >
           <TankScene
             distanceCm={distanceCm}
@@ -112,53 +107,49 @@ export default function TankVisualization({
           />
         </div>
 
-        {/* Overlay: No reading */}
         {!reading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-bg-dark/70 backdrop-blur-sm">
-            <div className="text-center space-y-2">
-              <div className="text-slate-400 text-sm font-medium">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+            <div className="text-center space-y-1.5">
+              <div className="text-slate-500 text-sm font-medium">
                 Waiting for first reading…
               </div>
-              <div className="text-slate-600 text-xs">
+              <div className="text-slate-400 text-xs">
                 Tank will animate once data is received
               </div>
             </div>
           </div>
         )}
 
-        {/* Overlay: Sensor invalid */}
         {reading && !sensorValid && !isStale && (
-          <div className="absolute inset-0 flex items-center justify-center bg-bg-dark/60 backdrop-blur-[2px]">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
             <div className="flex flex-col items-center gap-2 text-center">
-              <AlertTriangle size={32} className="text-slate-400" />
-              <span className="text-slate-300 font-semibold text-sm">
+              <AlertTriangle size={28} className="text-slate-400" />
+              <span className="text-slate-700 font-medium text-sm">
                 Sensor Invalid
               </span>
-              <span className="text-slate-500 text-xs">
-                Cannot read water level — check sensor
+              <span className="text-slate-400 text-xs">
+                Cannot read water level
               </span>
             </div>
           </div>
         )}
 
-        {/* Overlay: Data stale */}
         {reading && isStale && (
-          <div className="absolute inset-0 flex items-center justify-center bg-amber-950/40 backdrop-blur-[2px]">
+          <div className="absolute inset-0 flex items-center justify-center bg-amber-50/60 backdrop-blur-[2px]">
             <div className="flex flex-col items-center gap-2 text-center">
-              <Clock size={32} className="text-amber-400" />
-              <span className="text-amber-300 font-semibold text-sm">
+              <Clock size={28} className="text-amber-500" />
+              <span className="text-amber-700 font-medium text-sm">
                 Data Stale
               </span>
-              <span className="text-amber-500/80 text-xs">
-                No new readings — check device connection
+              <span className="text-amber-600/70 text-xs">
+                No recent readings
               </span>
             </div>
           </div>
         )}
 
-        {/* Fill % corner badge */}
         {reading && sensorValid && !isStale && (
-          <div className="absolute bottom-3 left-3 bg-bg-dark/80 rounded-lg px-2.5 py-1.5 backdrop-blur-sm border border-bg-border">
+          <div className="absolute bottom-2.5 left-2.5 bg-white/85 rounded-lg px-2.5 py-1.5 backdrop-blur-sm border border-bg-border">
             <div className="flex items-center gap-2">
               <div
                 className={cn(
@@ -167,14 +158,21 @@ export default function TankVisualization({
                     ? 'bg-red-500'
                     : status === 'WARNING'
                     ? 'bg-amber-500'
-                    : 'bg-blue-500',
+                    : 'bg-cyan-500',
                 )}
-                style={{ width: `${Math.max(fillPercentage, 2)}px`, maxWidth: '80px' }}
+                style={{ width: `${Math.max(fillPercentage, 2)}px`, maxWidth: '70px' }}
               />
-              <span className="text-xs font-bold text-white">
+              <span className="text-xs font-bold text-slate-900">
                 {fillPercentage.toFixed(1)}%
               </span>
             </div>
+          </div>
+        )}
+
+        {reading && sensorValid && !isStale && (
+          <div className="absolute top-2.5 right-2.5 text-[10px] text-slate-400 flex items-center gap-1">
+            <Maximize2 size={10} />
+            Drag to rotate
           </div>
         )}
       </div>

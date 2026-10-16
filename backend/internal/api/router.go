@@ -16,8 +16,8 @@ func NewRouter(svc *service.Service, cfg *config.Config) http.Handler {
 	mux.HandleFunc("/api/health", HealthHandler(svc))
 	mux.HandleFunc("/api/status", StatusHandler(svc))
 	mux.HandleFunc("/api/readings/latest", LatestReadingHandler(svc))
-	mux.HandleFunc("/api/readings/history", HistoryHandler(svc))
-	mux.HandleFunc("/api/config", configRouter(svc)) // GET + PUT on same path
+	mux.HandleFunc("/api/readings", readingsRouter(svc)) // GET = history, POST = ingest
+	mux.HandleFunc("/api/config", configRouter(svc))     // GET + PUT on same path
 	mux.HandleFunc("/api/events", SSEHandler(svc))
 
 	// Wrap with CORS middleware.
@@ -35,6 +35,23 @@ func configRouter(svc *service.Service) http.HandlerFunc {
 			getHandler(w, r)
 		case http.MethodPut:
 			putHandler(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	}
+}
+
+// readingsRouter dispatches GET (history) and POST (ingest) on /api/readings.
+func readingsRouter(svc *service.Service) http.HandlerFunc {
+	getHandler := HistoryHandler(svc)
+	postHandler := IngestReadingHandler(svc)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getHandler(w, r)
+		case http.MethodPost:
+			postHandler(w, r)
 		default:
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}

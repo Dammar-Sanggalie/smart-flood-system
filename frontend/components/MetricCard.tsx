@@ -29,51 +29,43 @@ export default function MetricCard({
   highlight = false,
 }: MetricCardProps) {
   const borderColor = status ? getStatusBorderColor(status) : 'border-transparent';
-  const valueColor = status && !isInvalid ? getStatusColor(status) : 'text-white';
+  const valueColor = status && !isInvalid ? getStatusColor(status) : 'text-slate-900';
 
   return (
     <div
       className={cn(
-        'relative bg-bg-card rounded-xl border border-bg-border',
-        'p-4 flex flex-col gap-1 overflow-hidden',
-        'border-l-4',
+        'relative bg-white rounded-xl border border-bg-border',
+        'p-3.5 flex flex-col gap-1 overflow-hidden transition-all duration-200',
+        'hover:shadow-sm hover:border-slate-300',
+        'border-l-[3px]',
         borderColor,
-        highlight && 'ring-1 ring-blue-500/30',
+        highlight && 'ring-1 ring-cyan-500/20',
       )}
     >
-      {/* Icon */}
-      <div className="absolute top-3 right-3 text-slate-500">
-        <Icon size={18} />
+      <div className="absolute top-2.5 right-2.5 text-slate-300">
+        <Icon size={16} />
       </div>
 
-      {/* Label */}
-      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider pr-6">
+      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider pr-6">
         {label}
       </p>
 
-      {/* Value */}
-      <div className="flex items-baseline gap-1.5 mt-0.5">
+      <div className="flex items-baseline gap-1 mt-0.5">
         <span
           className={cn(
-            'text-2xl font-bold tracking-tight transition-colors duration-300',
-            isInvalid ? 'text-slate-600' : valueColor,
+            'text-xl font-bold tracking-tight transition-colors duration-300',
+            isInvalid ? 'text-slate-300' : valueColor,
           )}
         >
           {isInvalid ? '—' : value}
         </span>
         {unit && !isInvalid && (
-          <span className="text-sm text-slate-400 font-medium">{unit}</span>
+          <span className="text-xs text-slate-400 font-medium">{unit}</span>
         )}
       </div>
 
-      {/* Subtext */}
       {subtext && (
-        <p className="text-xs text-slate-500 mt-0.5">{subtext}</p>
-      )}
-
-      {/* Invalid overlay hint */}
-      {isInvalid && (
-        <p className="text-xs text-slate-600 mt-0.5">Sensor invalid</p>
+        <p className="text-[10px] text-slate-400 mt-0.5 truncate">{subtext}</p>
       )}
     </div>
   );

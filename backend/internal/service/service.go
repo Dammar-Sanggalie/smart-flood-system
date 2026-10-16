@@ -21,14 +21,15 @@ type SSEEvent = models.SSEEvent
 
 // Service is the application core.  All public methods are concurrency-safe.
 type Service struct {
-	mu          sync.RWMutex
-	tankConfig  *models.TankConfig
-	lastReading *models.SensorReading
-	lastMsgAt   *time.Time
-	mqttStatus  string
-	sseClients  map[chan SSEEvent]struct{}
-	db          *storage.DB
-	appCfg      *config.Config
+	mu               sync.RWMutex
+	tankConfig       *models.TankConfig
+	lastReading      *models.SensorReading
+	lastMsgAt        *time.Time
+	mqttStatus       string
+	sseClients       map[chan SSEEvent]struct{}
+	db               *storage.DB
+	appCfg           *config.Config
+	realDataReceived bool // set true when any real (non-demo) reading arrives
 }
 
 // NewService creates a Service and loads tank config from the database (or falls back to defaults).
@@ -141,6 +142,7 @@ func (s *Service) ProcessMQTTMessage(payload []byte) {
 	s.mu.Lock()
 	s.lastReading = r
 	s.lastMsgAt = &now
+	s.realDataReceived = true
 	s.mu.Unlock()
 
 	// Push to all SSE subscribers.
@@ -215,7 +217,7 @@ func (s *Service) GetStatus() models.StatusResponse {
 	defer s.mu.RUnlock()
 
 	mode := "live"
-	if s.appCfg.DemoMode {
+	if s.appCfg.DemoMode && !s.realDataReceived {
 		mode = "demo"
 	}
 
@@ -337,15 +339,21 @@ func (s *Service) demoGenerator(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			// Stop generating demo data once real sensor data arrives.
+			s.mu.RLock()
+			if s.realDataReceived {
+				s.mu.RUnlock()
+				log.Println("[Service] Real sensor data received — stopping demo generator")
+				return
+			}
+			cfg := s.tankConfig
+			s.mu.RUnlock()
+
 			elapsed := time.Since(start).Seconds()
 
 			// Oscillate between 20 and 90 cm (period ≈ 60 s).
 			// sin goes -1…+1; scale to 35 amplitude around midpoint 55.
 			distanceCm := 55.0 + 35.0*math.Sin(2*math.Pi*elapsed/60.0)
-
-			s.mu.RLock()
-			cfg := s.tankConfig
-			s.mu.RUnlock()
 
 			waterLevel, fillPct, volumeLiters, capacityLiters := calculation.CalculateAll(distanceCm, cfg)
 			calcStatus := calculation.DetermineCalculatedStatus(fillPct, cfg)

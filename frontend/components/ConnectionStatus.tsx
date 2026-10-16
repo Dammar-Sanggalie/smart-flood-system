@@ -31,7 +31,7 @@ function StatusRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2 text-slate-400">
+      <div className="flex items-center gap-2 text-slate-500">
         <Icon size={14} />
         <span className="text-xs font-medium">{label}</span>
       </div>
@@ -44,7 +44,7 @@ function StatusRow({
                 dotColor,
               )}
             />
-          )}
+            )}
           <span className={cn('relative inline-flex rounded-full h-2 w-2', dotColor)} />
         </span>
         <span className={cn('text-xs font-semibold', textColor)}>{statusText}</span>
@@ -68,27 +68,29 @@ export default function ConnectionStatus({
       ? 'Reconnecting…'
       : mqttStatus === 'error'
       ? 'Error'
+      : mqttStatus === 'demo'
+      ? 'Demo (no MQTT)'
       : 'Disconnected';
 
-  const backendDot = backendConnected ? 'bg-green-400' : 'bg-red-400';
-  const backendTextColor = backendConnected ? 'text-green-400' : 'text-red-400';
+  const backendDot = backendConnected ? 'bg-green-500' : 'bg-red-500';
+  const backendTextColor = backendConnected ? 'text-green-600' : 'text-red-500';
   const backendLabel = backendConnected ? 'Online' : 'Offline';
 
   const sseDot =
     sseStatus === 'connected'
-      ? 'bg-green-400'
+      ? 'bg-green-500'
       : sseStatus === 'connecting'
-      ? 'bg-yellow-400'
+      ? 'bg-yellow-500'
       : sseStatus === 'error'
-      ? 'bg-red-400'
+      ? 'bg-red-500'
       : 'bg-slate-400';
   const sseTextColor =
     sseStatus === 'connected'
-      ? 'text-green-400'
+      ? 'text-green-600'
       : sseStatus === 'connecting'
-      ? 'text-yellow-400'
+      ? 'text-yellow-600'
       : sseStatus === 'error'
-      ? 'text-red-400'
+      ? 'text-red-500'
       : 'text-slate-400';
   const sseLabel =
     sseStatus === 'connected'
@@ -100,7 +102,7 @@ export default function ConnectionStatus({
       : 'Disconnected';
 
   return (
-    <div className="bg-bg-card rounded-xl border border-bg-border p-4 space-y-3">
+    <div className="bg-white rounded-xl border border-bg-border p-4 space-y-3">
       <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
         Connection Status
       </h3>
@@ -114,7 +116,6 @@ export default function ConnectionStatus({
           icon={mqttStatus === 'connected' ? Wifi : WifiOff}
           pulse={mqttStatus === 'connected'}
         />
-
         <StatusRow
           label="Backend API"
           dotColor={backendDot}
@@ -123,7 +124,6 @@ export default function ConnectionStatus({
           icon={Server}
           pulse={backendConnected}
         />
-
         {sseStatus && (
           <StatusRow
             label="Live Stream"
@@ -138,9 +138,9 @@ export default function ConnectionStatus({
 
       {lastMessageAt && (
         <div className="pt-1 border-t border-bg-border">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400">
             Last message:{' '}
-            <span className="text-slate-300">{formatRelativeTime(lastMessageAt)}</span>
+            <span className="text-slate-600">{formatRelativeTime(lastMessageAt)}</span>
           </p>
         </div>
       )}

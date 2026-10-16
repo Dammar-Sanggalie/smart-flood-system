@@ -1,268 +1,351 @@
-/*
-  Smart Flood Detection System — ESP32 Firmware
-  ==============================================
-  Hardware:
-  - ESP32 DevKit-C V4
-  - Ultrasonic Sensor HC-SR04
-  - 3x LEDs (Green, Yellow, Red) with 220 Ohm resistors
-  - Active/Passive Buzzer
-  - I2C LCD 16x2 (Address: 0x27 or 0x3F)
-
-  Pinout:
-  - HC-SR04 TRIG : GPIO 5
-  - HC-SR04 ECHO : GPIO 18 (USE 1k + 2k VOLTAGE DIVIDER: 5V -> 3.3V!)
-  - LED Hijau    : GPIO 25 (SAFE)
-  - LED Kuning   : GPIO 26 (WARNING)
-  - LED Merah    : GPIO 27 (DANGER)
-  - Buzzer       : GPIO 14
-  - LCD SDA      : GPIO 21
-  - LCD SCL      : GPIO 22
-
-  MQTT Topic : ti2024i/kelompok3/smartflood/data
-  MQTT Broker: test.mosquitto.org : 1883
-*/
-
-#include <WiFi.h>
-#include <PubSubClient.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+
+// ── TAMBAHAN: WiFi & HTTP POST ke backend ──────────
+#include <WiFi.h>
+#include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-// --- WiFi Credentials ---
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
+// LCD I2C ESP32
+const int LCD_SDA_PIN = 21;
+const int LCD_SCL_PIN = 22;
 
-// --- MQTT Settings ---
-const char* mqtt_broker = "test.mosquitto.org";
-const int mqtt_port = 1883;
-const char* mqtt_topic = "ti2024i/kelompok3/smartflood/data";
-const char* device_id = "smartflood-esp32-01";
+// Ganti sesuai hasil I2C Scanner (0x27 atau 0x3F)
+#define LCD_ADDRESS 0x27
+LiquidCrystal_I2C lcd(LCD_ADDRESS, 16, 2);
 
-// --- Pin Definitions ---
-#define PIN_TRIG 5
-#define PIN_ECHO 18
-#define PIN_LED_GREEN 25
-#define PIN_LED_YELLOW 26
-#define PIN_LED_RED 27
-#define PIN_BUZZER 14
+// HC-SR04
+const int TRIG_PIN = 5;
+const int ECHO_PIN = 18;
 
-// --- Distance Thresholds (Sensor-to-surface air gap in cm) ---
-// Note: Per existing project spec:
-// SAFE    : distance < 50 cm
-// WARNING : 50 cm <= distance < 80 cm
-// DANGER  : distance >= 80 cm
-#define DIST_SAFE_THRESHOLD 50.0
-#define DIST_WARN_THRESHOLD 80.0
+// LED dan buzzer
+const int LED_HIJAU = 25;
+const int LED_KUNING = 26;
+const int LED_MERAH_1 = 27; // Merah Kiri
+const int LED_MERAH_2 = 33; // Merah Tengah (Tersambung ke pin 33)
+const int LED_MERAH_3 = 32; // Merah Kanan (Tersambung ke pin 32)
+const int BUZZER_PIN = 14;
 
-WiFiClient espClient;
-PubSubClient mqttClient(espClient);
-LiquidCrystal_I2C lcd(0x27, 16, 2); // Change to 0x3F if 0x27 does not show text
+// Model wadah simulasi
+const float TINGGI_REFERENSI_CM = 100.0;
+const float THRESHOLD_WARNING = 50.0;
+const float THRESHOLD_DANGER = 80.0;
 
-unsigned long lastPublish = 0;
-const unsigned long publishInterval = 2000; // Publish every 2 seconds
+// Interval waktu (Non-blocking)
+const unsigned long SENSOR_INTERVAL = 500;
+const unsigned long LCD_ANIMATION_INTERVAL = 150; // Kedip LCD
+const unsigned long LED_ANIMATION_INTERVAL = 100; // Kecepatan lari 3 LED Merah
 
-// Function to read ultrasonic distance with timeout
-float readDistanceCm() {
-  digitalWrite(PIN_TRIG, LOW);
-  delayMicroseconds(2);
-  digitalWrite(PIN_TRIG, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(PIN_TRIG, LOW);
+// ── TAMBAHAN: Config WiFi & Backend ────────────────
+// Isi 3 variable ini!
+const char* WIFI_SSID     = "YOUR_WIFI_SSID";
+const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+// IP laptop kamu (cari dengan: ipconfig → IPv4 Address)
+const char* BACKEND_URL   = "http://192.168.1.8:8080/api/readings";
+const char* DEVICE_ID     = "smartflood-esp32-01";
+const unsigned long PUBLISH_INTERVAL = 2000; // Kirim data setiap 2 detik
 
-  // pulseIn with 30ms timeout (~5m max distance)
-  long duration = pulseIn(PIN_ECHO, HIGH, 30000);
-  if (duration == 0) {
-    return -1.0; // Invalid / timeout
+unsigned long lastSensorRead = 0;
+unsigned long lastLCDUpdate = 0;
+unsigned long lastLEDUpdate = 0;
+unsigned long lastPublish = 0;  // TAMBAHAN
+
+float distanceCm = 0;
+float waterLevelCm = 0;
+bool sensorValid = false;
+
+enum WaterStatus { SAFE_STATE, WARNING_STATE, DANGER_STATE, SENSOR_ERROR_STATE };
+WaterStatus currentStatus = SENSOR_ERROR_STATE;
+
+const char* statusName(WaterStatus status) {
+  switch (status) {
+    case SAFE_STATE: return "AMAN";
+    case WARNING_STATE: return "SIAGA";
+    case DANGER_STATE: return "BAHAYA";
+    default: return "ERROR";
   }
-
-  // Speed of sound = 343 m/s = 0.0343 cm/us
-  // distance = (duration * 0.0343) / 2
-  float distance = (duration * 0.0343) / 2.0;
-  return distance;
 }
 
-void setupWiFi() {
-  delay(10);
-  Serial.print("Connecting to WiFi: ");
-  Serial.println(ssid);
+// ── TAMBAHAN: Status untuk backend (English) ──────
+const char* backendStatus(WaterStatus status) {
+  switch (status) {
+    case SAFE_STATE: return "SAFE";
+    case WARNING_STATE: return "WARNING";
+    case DANGER_STATE: return "DANGER";
+    default: return "INVALID";
+  }
+}
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+// Tulis maksimal 16 karakter pada satu baris LCD
+void lcdPrintLine(int row, String text) {
+  if (text.length() > 16) text = text.substring(0, 16);
+  while (text.length() < 16) text += ' ';
+  lcd.setCursor(0, row);
+  lcd.print(text);
+}
+
+// Baca jarak dan hitung tinggi air
+bool readWaterLevel() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(3);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  unsigned long duration = pulseIn(ECHO_PIN, HIGH, 30000UL);
+  if (duration == 0) return false;
+
+  float measuredDistance = duration / 58.0;
+  if (measuredDistance > 400.0) return false;
+
+  distanceCm = measuredDistance;
+
+  if (measuredDistance <= 2.0) {
+    waterLevelCm = TINGGI_REFERENSI_CM;
+    return true;
+  }
+
+  waterLevelCm = TINGGI_REFERENSI_CM - measuredDistance;
+  if (waterLevelCm < 0) waterLevelCm = 0;
+  if (waterLevelCm > TINGGI_REFERENSI_CM) waterLevelCm = TINGGI_REFERENSI_CM;
+
+  return true;
+}
+
+// Tentukan status berdasarkan tinggi air
+WaterStatus determineStatus(float level) {
+  if (level >= THRESHOLD_DANGER) return DANGER_STATE;
+  if (level >= THRESHOLD_WARNING) return WARNING_STATE;
+  return SAFE_STATE;
+}
+
+// Kontrol LED dan Buzzer
+void updateActuators() {
+  if (currentStatus == SAFE_STATE) {
+    digitalWrite(LED_HIJAU, HIGH);
+    digitalWrite(LED_KUNING, LOW);
+    digitalWrite(LED_MERAH_1, LOW);
+    digitalWrite(LED_MERAH_2, LOW);
+    digitalWrite(LED_MERAH_3, LOW);
+    noTone(BUZZER_PIN);
+  } 
+  else if (currentStatus == WARNING_STATE) {
+    digitalWrite(LED_HIJAU, LOW);
+    digitalWrite(LED_KUNING, HIGH);
+    digitalWrite(LED_MERAH_1, LOW);
+    digitalWrite(LED_MERAH_2, LOW);
+    digitalWrite(LED_MERAH_3, LOW);
+    noTone(BUZZER_PIN);
+  } 
+  else if (currentStatus == DANGER_STATE) {
+    digitalWrite(LED_HIJAU, LOW);
+    digitalWrite(LED_KUNING, LOW);
+    tone(BUZZER_PIN, 1000); // Alarm bunyi konstan
+    
+    // Animasi 3 LED Merah memancar dari tengah
+    int ledFrame = (millis() / LED_ANIMATION_INTERVAL) % 4; 
+    
+    if (ledFrame == 0 || ledFrame == 2) {
+      digitalWrite(LED_MERAH_1, LOW);
+      digitalWrite(LED_MERAH_2, HIGH); // Tengah nyala
+      digitalWrite(LED_MERAH_3, LOW);
+    } else if (ledFrame == 1) {
+      digitalWrite(LED_MERAH_1, HIGH); // Kiri nyala
+      digitalWrite(LED_MERAH_2, LOW);
+      digitalWrite(LED_MERAH_3, LOW);
+    } else if (ledFrame == 3) {
+      digitalWrite(LED_MERAH_1, LOW);
+      digitalWrite(LED_MERAH_2, LOW);
+      digitalWrite(LED_MERAH_3, HIGH); // Kanan nyala
+    }
+  } 
+  else { // SENSOR ERROR
+    digitalWrite(LED_HIJAU, LOW);
+    digitalWrite(LED_KUNING, LOW);
+    // Kalau error, ke-3 lampu merah nyala diam
+    digitalWrite(LED_MERAH_1, HIGH); 
+    digitalWrite(LED_MERAH_2, HIGH); 
+    digitalWrite(LED_MERAH_3, HIGH); 
+    noTone(BUZZER_PIN);
+  }
+}
+
+// Update LCD dengan animasi strobo blok hitam
+void updateLCD() {
+  if (!sensorValid) {
+    lcdPrintLine(0, "SENSOR ERROR!");
+    lcdPrintLine(1, "Cek HC-SR04");
+    return;
+  }
+
+  // Baris Atas: Angka jarak
+  lcdPrintLine(0, "Jarak: " + String(distanceCm, 1) + " cm");
+
+  // Baris Bawah: Animasi saat BAHAYA
+  if (currentStatus == DANGER_STATE) {
+    int blinkFrame = (millis() / LCD_ANIMATION_INTERVAL) % 4;
+    char kotak = 255; 
+    String strobo = String(kotak) + String(kotak) + String(kotak); 
+
+    if (blinkFrame == 0) {
+      lcdPrintLine(1, strobo + "  BAHAYA     "); 
+    } else if (blinkFrame == 1) {
+      lcdPrintLine(1, "     BAHAYA  " + strobo); 
+    } else if (blinkFrame == 2) {
+      lcdPrintLine(1, strobo + "  BAHAYA  " + strobo); 
+    } else {
+      lcdPrintLine(1, "     BAHAYA     "); 
+    }
+  } else {
+    lcdPrintLine(1, "Status: " + String(statusName(currentStatus)));
+  }
+}
+
+// ── TAMBAHAN: Connect WiFi ─────────────────────────
+void setupWiFi() {
+  if (WiFi.status() == WL_CONNECTED) return;
+
+  Serial.print("Connecting to WiFi: ");
+  Serial.println(WIFI_SSID);
+
+  // Reset WiFi state sebelum connect (fix "cannot set config" error)
+  WiFi.disconnect(true);
+  delay(200);
+
+  // Jangan panggil WiFi.mode() di sini — sudah dipanggil sekali di setup()
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
     delay(500);
     Serial.print(".");
     attempts++;
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nWiFi connected!");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    Serial.println("\nWiFi OK! IP: " + WiFi.localIP().toString());
+    Serial.println("Backend: " + String(BACKEND_URL));
   } else {
-    Serial.println("\nWiFi connection failed! Will retry in main loop.");
+    Serial.println("\nWiFi gagal, retry di loop.");
+    Serial.println("Pastikan SSID adalah jaringan 2.4GHz (bukan _5G)");
   }
 }
 
-void reconnectMQTT() {
-  while (!mqttClient.connected()) {
-    Serial.print("Attempting MQTT connection to ");
-    Serial.print(mqtt_broker);
-    Serial.print("...");
-
-    String clientId = String(device_id) + "-" + String(random(0xffff), HEX);
-
-    if (mqttClient.connect(clientId.c_str())) {
-      Serial.println(" CONNECTED!");
-    } else {
-      Serial.print(" FAILED, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(". Retrying in 3 seconds...");
-      delay(3000);
-      if (WiFi.status() != WL_CONNECTED) {
-        setupWiFi();
-      }
-    }
-  }
-}
-
-void updateActuators(String status, bool sensorValid) {
-  if (!sensorValid) {
-    // Sensor error: all LEDs blink once or stay off
-    digitalWrite(PIN_LED_GREEN, LOW);
-    digitalWrite(PIN_LED_YELLOW, LOW);
-    digitalWrite(PIN_LED_RED, LOW);
-    digitalWrite(PIN_BUZZER, LOW);
-    return;
+// ── TAMBAHAN: Kirim data ke backend via HTTP POST ──
+void sendToBackend() {
+  if (WiFi.status() != WL_CONNECTED) {
+    setupWiFi();
+    if (WiFi.status() != WL_CONNECTED) return;
   }
 
-  if (status == "SAFE") {
-    digitalWrite(PIN_LED_GREEN, HIGH);
-    digitalWrite(PIN_LED_YELLOW, LOW);
-    digitalWrite(PIN_LED_RED, LOW);
-    digitalWrite(PIN_BUZZER, LOW);
-  } else if (status == "WARNING") {
-    digitalWrite(PIN_LED_GREEN, LOW);
-    digitalWrite(PIN_LED_YELLOW, HIGH);
-    digitalWrite(PIN_LED_RED, LOW);
-    // Buzzer beeps slowly
-    digitalWrite(PIN_BUZZER, (millis() % 1000 < 200) ? HIGH : LOW);
-  } else if (status == "DANGER") {
-    digitalWrite(PIN_LED_GREEN, LOW);
-    digitalWrite(PIN_LED_YELLOW, LOW);
-    digitalWrite(PIN_LED_RED, HIGH);
-    // Buzzer continuous / fast beep
-    digitalWrite(PIN_BUZZER, (millis() % 400 < 200) ? HIGH : LOW);
-  }
-}
+  // Build JSON payload
+  // Format yang diterima backend:
+  // {"deviceId":"...","distanceCm":35.2,"status":"SAFE","sensorValid":true,...}
+  StaticJsonDocument<256> doc;
+  doc["deviceId"] = DEVICE_ID;
 
-void updateLCD(float distance, String status, bool sensorValid) {
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Smart Flood Sys");
-
-  lcd.setCursor(0, 1);
-  if (!sensorValid) {
-    lcd.print("Sensor: ERROR   ");
+  if (sensorValid) {
+    doc["distanceCm"] = serialized(String(distanceCm, 1));
   } else {
-    lcd.print("D:");
-    lcd.print((int)distance);
-    lcd.print("cm ");
-    lcd.print("[");
-    lcd.print(status);
-    lcd.print("]");
+    doc["distanceCm"] = -1.0;
   }
+
+  doc["status"] = backendStatus(currentStatus);
+  doc["sensorValid"] = sensorValid;
+  doc["wifiConnected"] = (WiFi.status() == WL_CONNECTED);
+  doc["uptimeSeconds"] = millis() / 1000;
+
+  char buffer[256];
+  serializeJson(doc, buffer);
+
+  Serial.print("POST -> ");
+  Serial.println(buffer);
+
+  HTTPClient http;
+  http.begin(BACKEND_URL);
+  http.addHeader("Content-Type", "application/json");
+  http.setTimeout(3000);
+
+  int code = http.POST(buffer);
+
+  if (code > 0) {
+    Serial.print("Backend response: ");
+    Serial.println(code);
+  } else {
+    Serial.print("HTTP error: ");
+    Serial.println(code);
+  }
+
+  http.end();
 }
 
 void setup() {
   Serial.begin(115200);
 
-  pinMode(PIN_TRIG, OUTPUT);
-  pinMode(PIN_ECHO, INPUT);
-  pinMode(PIN_LED_GREEN, OUTPUT);
-  pinMode(PIN_LED_YELLOW, OUTPUT);
-  pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_BUZZER, OUTPUT);
+  Wire.begin(LCD_SDA_PIN, LCD_SCL_PIN);
+  Wire.setClock(100000);
+  delay(100);
 
-  // Initialize LCD
-  Wire.begin(21, 22);
   lcd.init();
   lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("Smart Flood Sys");
-  lcd.setCursor(0, 1);
-  lcd.print("Booting up...");
-
-  setupWiFi();
-
-  mqttClient.setServer(mqtt_broker, mqtt_port);
-  mqttClient.setBufferSize(512);
-
-  delay(1000);
   lcd.clear();
+
+  lcdPrintLine(0, "SMART FLOOD K3");
+  lcdPrintLine(1, "Sistem Menyala..");
+
+  delay(1500);
+  lcd.clear();
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(LED_HIJAU, OUTPUT);
+  pinMode(LED_KUNING, OUTPUT);
+  pinMode(LED_MERAH_1, OUTPUT);
+  pinMode(LED_MERAH_2, OUTPUT);
+  pinMode(LED_MERAH_3, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  digitalWrite(TRIG_PIN, LOW);
+  updateActuators();
+
+  Serial.println("Smart Flood dimulai");
+
+  // ── TAMBAHAN: Connect WiFi saat startup ────────
+  WiFi.mode(WIFI_STA);  // Set mode sekali aja di sini
+  setupWiFi();
 }
 
 void loop() {
-  if (WiFi.status() != WL_CONNECTED) {
-    setupWiFi();
-  }
-
-  if (!mqttClient.connected()) {
-    reconnectMQTT();
-  }
-  mqttClient.loop();
-
   unsigned long now = millis();
-  if (now - lastPublish >= publishInterval) {
+
+  // 1. Baca sensor (500ms)
+  if (now - lastSensorRead >= SENSOR_INTERVAL) {
+    lastSensorRead = now;
+    sensorValid = readWaterLevel();
+    currentStatus = sensorValid ? determineStatus(waterLevelCm) : SENSOR_ERROR_STATE;
+    
+    if (sensorValid) {
+      Serial.print("Jarak: "); Serial.print(distanceCm, 1);
+      Serial.print(" cm | Air: "); Serial.print(waterLevelCm, 1);
+      Serial.print(" cm | Status: "); Serial.println(statusName(currentStatus));
+    }
+  }
+
+  // 2. Animasi LED Lari (100ms)
+  if (now - lastLEDUpdate >= LED_ANIMATION_INTERVAL) {
+    lastLEDUpdate = now;
+    updateActuators();
+  }
+
+  // 3. Animasi LCD Ajep-ajep (150ms)
+  if (now - lastLCDUpdate >= LCD_ANIMATION_INTERVAL) {
+    lastLCDUpdate = now;
+    updateLCD();
+  }
+
+  // ── TAMBAHAN: Kirim data ke backend (2000ms) ───
+  if (now - lastPublish >= PUBLISH_INTERVAL) {
     lastPublish = now;
-
-    float distance = readDistanceCm();
-    bool sensorValid = (distance > 0.0 && distance < 400.0);
-
-    String status = "UNKNOWN";
-    if (sensorValid) {
-      if (distance < DIST_SAFE_THRESHOLD) {
-        status = "SAFE";
-      } else if (distance < DIST_WARN_THRESHOLD) {
-        status = "WARNING";
-      } else {
-        status = "DANGER";
-      }
-    } else {
-      status = "INVALID";
-    }
-
-    // Update physical actuators
-    updateActuators(status, sensorValid);
-
-    // Update 16x2 LCD
-    updateLCD(distance, status, sensorValid);
-
-    // Build JSON payload matching backend contract
-    StaticJsonDocument<256> doc;
-    doc["deviceId"] = device_id;
-    if (sensorValid) {
-      doc["distanceCm"] = serialized(String(distance, 1));
-    } else {
-      doc["distanceCm"] = -1.0;
-    }
-    doc["status"] = status;
-    doc["sensorValid"] = sensorValid;
-    doc["wifiConnected"] = (WiFi.status() == WL_CONNECTED);
-    doc["uptimeSeconds"] = millis() / 1000;
-
-    char buffer[256];
-    serializeJson(doc, buffer);
-
-    Serial.print("Publishing to ");
-    Serial.print(mqtt_topic);
-    Serial.print(": ");
-    Serial.println(buffer);
-
-    bool ok = mqttClient.publish(mqtt_topic, buffer);
-    if (!ok) {
-      Serial.println("MQTT publish failed!");
-    }
+    sendToBackend();
   }
 }

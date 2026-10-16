@@ -4,7 +4,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Settings2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Settings2, Droplets } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTankData } from '@/hooks/useTankData';
 
@@ -33,19 +33,19 @@ function CollapsiblePanel({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-bg-card rounded-xl border border-bg-border overflow-hidden">
+    <div className="bg-white rounded-xl border border-bg-border overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-bg-border/30 transition-colors duration-150"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-bg-hover transition-colors duration-150"
       >
         <div className="flex items-center gap-2">
           <Icon size={15} className="text-slate-400" />
-          <span className="text-sm font-semibold text-slate-300">{title}</span>
+          <span className="text-sm font-semibold text-slate-700">{title}</span>
         </div>
         {open ? (
-          <ChevronDown size={15} className="text-slate-500" />
+          <ChevronDown size={15} className="text-slate-400" />
         ) : (
-          <ChevronRight size={15} className="text-slate-500" />
+          <ChevronRight size={15} className="text-slate-400" />
         )}
       </button>
       {open && (
@@ -61,11 +61,13 @@ function CollapsiblePanel({
 function WaitingBanner() {
   return (
     <div className="rounded-xl border border-bg-border border-dashed p-8 text-center">
-      <div className="text-slate-600 text-3xl mb-3">💧</div>
-      <p className="text-slate-400 font-medium text-sm">
+      <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-cyan-500/10 flex items-center justify-center">
+        <Droplets size={20} className="text-cyan-500/60" />
+      </div>
+      <p className="text-slate-500 font-medium text-sm">
         Waiting for first reading…
       </p>
-      <p className="text-slate-600 text-xs mt-1 max-w-xs mx-auto">
+      <p className="text-slate-400 text-xs mt-1 max-w-xs mx-auto">
         Data will appear here once the ESP32 device connects and sends sensor readings.
       </p>
     </div>
@@ -148,12 +150,12 @@ export default function DashboardPage() {
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-5">
         {/* Error banner (non-fatal) */}
         {error && (
-          <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-300 text-xs rounded-lg px-4 py-2.5 flex items-center gap-2">
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg px-4 py-2.5 flex items-center gap-2">
             <span className="shrink-0">⚠</span>
             <span>{error}</span>
             <button
               onClick={handleRetry}
-              className="ml-auto text-red-400 hover:text-white underline"
+              className="ml-auto text-red-500 hover:text-red-700 underline"
             >
               Retry
             </button>
@@ -207,7 +209,7 @@ export default function DashboardPage() {
                   onSave={updateConfig}
                 />
               ) : (
-                <div className="text-center py-4 text-slate-500 text-xs">
+                <div className="text-center py-4 text-slate-400 text-xs">
                   Loading configuration…
                 </div>
               )}
@@ -223,9 +225,9 @@ export default function DashboardPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-bg-border py-3 px-6 text-center">
-        <p className="text-xs text-slate-700">
-          Smart Flood Detection System &mdash; IoT Dashboard &copy; {new Date().getFullYear()}
+      <footer className="border-t border-bg-border py-3 px-6">
+        <p className="text-xs text-slate-400 text-center">
+          Smart Flood Detection System — IoT Dashboard
         </p>
       </footer>
     </div>

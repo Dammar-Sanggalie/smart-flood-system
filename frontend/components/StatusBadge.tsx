@@ -30,13 +30,7 @@ export default function StatusBadge({
 }: StatusBadgeProps) {
   if (isStale) {
     return (
-      <span
-        className={cn(
-          'inline-flex items-center font-semibold rounded-full border',
-          'bg-slate-500/20 text-slate-400 border-slate-500/40',
-          sizeClasses[size],
-        )}
-      >
+      <span className={cn('inline-flex items-center font-semibold rounded-full border', 'bg-slate-100 text-slate-500 border-slate-200', sizeClasses[size])}>
         {showIcon && <Clock size={iconSizes[size]} />}
         STALE
       </span>
@@ -44,44 +38,18 @@ export default function StatusBadge({
   }
 
   const variants: Record<string, { classes: string; label: string; Icon: React.ElementType }> = {
-    SAFE: {
-      classes: 'bg-green-500/20 text-green-400 border-green-500/40',
-      label: 'SAFE',
-      Icon: ShieldCheck,
-    },
-    WARNING: {
-      classes: 'bg-amber-500/20 text-amber-400 border-amber-500/40',
-      label: 'WARNING',
-      Icon: AlertTriangle,
-    },
-    DANGER: {
-      classes: 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse',
-      label: 'DANGER',
-      Icon: ShieldAlert,
-    },
-    INVALID: {
-      classes: 'bg-slate-500/20 text-slate-400 border-slate-500/40',
-      label: 'INVALID',
-      Icon: HelpCircle,
-    },
-    UNKNOWN: {
-      classes: 'bg-slate-500/20 text-slate-400 border-slate-500/40',
-      label: 'UNKNOWN',
-      Icon: HelpCircle,
-    },
+    SAFE: { classes: 'bg-green-50 text-green-600 border-green-200', label: 'SAFE', Icon: ShieldCheck },
+    WARNING: { classes: 'bg-amber-50 text-amber-600 border-amber-200', label: 'WARNING', Icon: AlertTriangle },
+    DANGER: { classes: 'bg-red-50 text-red-600 border-red-200 animate-pulse', label: 'DANGER', Icon: ShieldAlert },
+    INVALID: { classes: 'bg-slate-100 text-slate-500 border-slate-200', label: 'INVALID', Icon: HelpCircle },
+    UNKNOWN: { classes: 'bg-slate-100 text-slate-500 border-slate-200', label: 'UNKNOWN', Icon: HelpCircle },
   };
 
   const variant = variants[status] ?? variants.UNKNOWN;
   const { classes, label, Icon } = variant;
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center font-semibold rounded-full border',
-        classes,
-        sizeClasses[size],
-      )}
-    >
+    <span className={cn('inline-flex items-center font-semibold rounded-full border', classes, sizeClasses[size])}>
       {showIcon && <Icon size={iconSizes[size]} />}
       {label}
     </span>
