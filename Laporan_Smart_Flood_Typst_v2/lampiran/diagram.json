@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "author": "Kelompok 3 TI 2024I - Smart Flood LCD",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-breadboard-half", "id": "bb1", "top": 179.4, "left": 12.4, "attrs": {} },
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": -48, "left": 408.04, "attrs": {} },
+    {
+      "type": "wokwi-hc-sr04",
+      "id": "ultrasonic1",
+      "top": -65.7,
+      "left": 82.3,
+      "attrs": { "distance": "149" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledGreen",
+      "top": 188.4,
+      "left": 128.6,
+      "attrs": { "color": "limegreen" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rGreen",
+      "top": 264,
+      "left": 114.65,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledYellow",
+      "top": 188.4,
+      "left": 176.6,
+      "attrs": { "color": "yellow" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rYellow",
+      "top": 264,
+      "left": 162.65,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledRed",
+      "top": 188.4,
+      "left": 224.6,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rRed",
+      "top": 264,
+      "left": 210.65,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": -64.8,
+      "left": 261,
+      "attrs": { "volume": "0.5", "mode": "smooth" }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -233.6,
+      "left": 82.4,
+      "attrs": { "pins": "i2c", "i2cAddress": "0x27", "background": "blue", "color": "white" }
+    }
+  ],
+  "connections": [
+    [ "esp:5V", "bb1:bp.1", "red", [ "h-412.65", "v212.1" ] ],
+    [ "ultrasonic1:VCC", "bb1:bp.8", "red", [ "v9.6", "h-38.4", "v423.3" ] ],
+    [ "esp:GND.1", "bb1:bn.1", "black", [ "h-422.25", "v270.1" ] ],
+    [ "ultrasonic1:GND", "bb1:bn.8", "black", [ "v38.4", "h-49.2", "v404.5" ] ],
+    [ "ultrasonic1:TRIG", "bb1:3t.a", "green", [ "v19.2", "h-106", "v278.4" ] ],
+    [ "esp:5", "bb1:3t.b", "green", [ "h28.8", "v336", "h-480" ] ],
+    [ "ultrasonic1:ECHO", "bb1:4t.a", "green", [ "v28.8", "h-212" ] ],
+    [ "esp:18", "bb1:4t.b", "green", [ "h19.2", "v336", "h-460.8" ] ],
+    [ "esp:25", "bb1:13t.b", "green", [ "h-220.65", "v19.2", "h-28.8", "v163.2" ] ],
+    [ "bb1:bn.10", "bb1:12b.g", "black", [ "h11.2", "v-68.5" ] ],
+    [ "esp:26", "bb1:18t.b", "yellow", [ "h-201.45", "v172.8" ] ],
+    [ "bb1:bn.15", "bb1:17b.g", "black", [ "v0" ] ],
+    [ "esp:27", "bb1:23t.b", "red", [ "h-153.45", "v163.2" ] ],
+    [ "bb1:bn.20", "bb1:22b.g", "black", [ "h-8", "v-68.5" ] ],
+    [ "esp:14", "bb1:28t.a", "green", [ "h-105.45", "v144" ] ],
+    [ "buzzer:2", "bb1:28t.b", "green", [] ],
+    [ "buzzer:1", "bb1:27t.a", "black", [] ],
+    [ "bb1:bn.27", "bb1:27t.b", "black", [] ],
+    [ "lcd1:GND", "bb1:bn.1", "black", [ "h-96", "v673.3" ] ],
+    [ "lcd1:VCC", "bb1:bp.1", "red", [ "h-86.4", "v653.8" ] ],
+    [ "lcd1:SDA", "esp:21", "green", [ "h-28.8", "v105.8", "h470.4", "v105.6" ] ],
+    [ "lcd1:SCL", "esp:22", "blue", [ "h-19.2", "v86.7", "h470.4", "v86.4" ] ],
+    [ "ledGreen:A", "bb1:13t.a", "", [ "$bb" ] ],
+    [ "ledGreen:C", "bb1:12t.a", "", [ "$bb" ] ],
+    [ "rGreen:1", "bb1:12t.b", "", [ "$bb" ] ],
+    [ "rGreen:2", "bb1:12b.f", "", [ "$bb" ] ],
+    [ "ledYellow:A", "bb1:18t.a", "", [ "$bb" ] ],
+    [ "ledYellow:C", "bb1:17t.a", "", [ "$bb" ] ],
+    [ "rYellow:1", "bb1:17t.b", "", [ "$bb" ] ],
+    [ "rYellow:2", "bb1:17b.f", "", [ "$bb" ] ],
+    [ "ledRed:A", "bb1:23t.a", "", [ "$bb" ] ],
+    [ "ledRed:C", "bb1:22t.a", "", [ "$bb" ] ],
+    [ "rRed:1", "bb1:22t.b", "", [ "$bb" ] ],
+    [ "rRed:2", "bb1:22b.f", "", [ "$bb" ] ]
+  ],
+  "dependencies": {}
+}

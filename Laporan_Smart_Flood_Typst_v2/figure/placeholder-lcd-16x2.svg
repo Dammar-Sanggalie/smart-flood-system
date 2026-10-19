@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460">
+  <defs>
+    <!-- Background styling -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EDF2F7"/>
+    </linearGradient>
+    <!-- LCD Blue Screen Gradient -->
+    <linearGradient id="lcdBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0E4DA4"/>
+      <stop offset="100%" stop-color="#093678"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Container Box -->
+  <rect x="0" y="0" width="900" height="460" rx="10" fill="url(#bgGrad)" stroke="#CBD5E1" stroke-width="1.5"/>
+
+  <!-- Title & Description Header -->
+  <text x="450" y="38" font-family="'Courier New', monospace, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#0F172A">
+    ANTARMUKA PENAMPIL LCD 16×2 I2C (PCF8574 — 0x27)
+  </text>
+  <text x="450" y="60" font-family="'Segoe UI', Roboto, Helvetica, sans-serif" font-size="13" text-anchor="middle" fill="#64748B">
+    Sistem Paging Otomatis 3 Halaman Bergantian Setiap 2.500 ms (2,5 Detik)
+  </text>
+
+  <!-- ================= PAGE 1: PENGUKURAN ================= -->
+  <g transform="translate(30, 85)">
+    <!-- PCB Outer Frame -->
+    <rect x="0" y="0" width="260" height="270" rx="8" fill="#1E293B" stroke="#0F172A" stroke-width="2"/>
+    <circle cx="15" cy="15" r="5" fill="#94A3B8"/>
+    <circle cx="245" cy="15" r="5" fill="#94A3B8"/>
+    <circle cx="15" cy="255" r="5" fill="#94A3B8"/>
+    <circle cx="245" cy="255" r="5" fill="#94A3B8"/>
+
+    <!-- Screen Bezel -->
+    <rect x="18" y="30" width="224" height="120" rx="6" fill="#020617" stroke="#334155" stroke-width="2"/>
+    <!-- Active LCD Screen -->
+    <rect x="26" y="42" width="208" height="96" rx="4" fill="url(#lcdBlue)"/>
+
+    <!-- LCD Text (White with slight cyan glow) -->
+    <text x="36" y="78" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#F8FAFC" letter-spacing="1" filter="url(#glow)">
+      Jarak: 40 cm
+    </text>
+    <text x="36" y="112" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#F8FAFC" letter-spacing="1" filter="url(#glow)">
+      Tinggi: 60 cm
+    </text>
+
+    <!-- Subtitle Card -->
+    <rect x="18" y="165" width="224" height="90" rx="5" fill="#0F172A"/>
+    <text x="130" y="188" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#38BDF8">
+      Halaman 1 (Page 0)
+    </text>
+    <text x="130" y="210" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" text-anchor="middle" fill="#CBD5E1">
+      Telemetri Fisis Sensor
+    </text>
+    <text x="130" y="232" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle" fill="#94A3B8">
+      Jarak Pantul &amp; Ketinggian Air
+    </text>
+  </g>
+
+  <!-- ================= PAGE 2: STATUS SIAGA ================= -->
+  <g transform="translate(320, 85)">
+    <!-- PCB Outer Frame -->
+    <rect x="0" y="0" width="260" height="270" rx="8" fill="#1E293B" stroke="#0F172A" stroke-width="2"/>
+    <circle cx="15" cy="15" r="5" fill="#94A3B8"/>
+    <circle cx="245" cy="15" r="5" fill="#94A3B8"/>
+    <circle cx="15" cy="255" r="5" fill="#94A3B8"/>
+    <circle cx="245" cy="255" r="5" fill="#94A3B8"/>
+
+    <!-- Screen Bezel -->
+    <rect x="18" y="30" width="224" height="120" rx="6" fill="#020617" stroke="#334155" stroke-width="2"/>
+    <!-- Active LCD Screen -->
+    <rect x="26" y="42" width="208" height="96" rx="4" fill="url(#lcdBlue)"/>
+
+    <!-- LCD Text (White with slight cyan glow) -->
+    <text x="36" y="78" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#F8FAFC" letter-spacing="1" filter="url(#glow)">
+      STATUS: WARNING
+    </text>
+    <text x="36" y="112" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#F8FAFC" letter-spacing="1" filter="url(#glow)">
+      Air meninggi!
+    </text>
+
+    <!-- Subtitle Card -->
+    <rect x="18" y="165" width="224" height="90" rx="5" fill="#0F172A"/>
+    <text x="130" y="188" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#FBBF24">
+      Halaman 2 (Page 1)
+    </text>
+    <text x="130" y="210" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" text-anchor="middle" fill="#CBD5E1">
+      Status Siaga &amp; Tanggap
+    </text>
+    <text x="130" y="232" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle" fill="#94A3B8">
+      SAFE / WARNING / DANGER
+    </text>
+  </g>
+
+  <!-- ================= PAGE 3: STATUS JARINGAN ================= -->
+  <g transform="translate(610, 85)">
+    <!-- PCB Outer Frame -->
+    <rect x="0" y="0" width="260" height="270" rx="8" fill="#1E293B" stroke="#0F172A" stroke-width="2"/>
+    <circle cx="15" cy="15" r="5" fill="#94A3B8"/>
+    <circle cx="245" cy="15" r="5" fill="#94A3B8"/>
+    <circle cx="15" cy="255" r="5" fill="#94A3B8"/>
+    <circle cx="245" cy="255" r="5" fill="#94A3B8"/>
+
+    <!-- Screen Bezel -->
+    <rect x="18" y="30" width="224" height="120" rx="6" fill="#020617" stroke="#334155" stroke-width="2"/>
+    <!-- Active LCD Screen -->
+    <rect x="26" y="42" width="208" height="96" rx="4" fill="url(#lcdBlue)"/>
+
+    <!-- LCD Text (White with slight cyan glow) -->
+    <text x="36" y="78" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#F8FAFC" letter-spacing="1" filter="url(#glow)">
+      WiFi: ONLINE
+    </text>
+    <text x="36" y="112" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#F8FAFC" letter-spacing="1" filter="url(#glow)">
+      MQTT: ONLINE
+    </text>
+
+    <!-- Subtitle Card -->
+    <rect x="18" y="165" width="224" height="90" rx="5" fill="#0F172A"/>
+    <text x="130" y="188" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#4ADE80">
+      Halaman 3 (Page 2)
+    </text>
+    <text x="130" y="210" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" text-anchor="middle" fill="#CBD5E1">
+      Konektivitas IoT
+    </text>
+    <text x="130" y="232" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle" fill="#94A3B8">
+      Wokwi-GUEST &amp; Mosquitto
+    </text>
+  </g>
+
+  <!-- Technical Footer Bar -->
+  <rect x="30" y="375" width="840" height="60" rx="6" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="45" y="400" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#1E293B">
+    Spesifikasi Antarmuka:
+  </text>
+  <text x="185" y="400" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" fill="#475569">
+    I2C SDA: GPIO 21  |  I2C SCL: GPIO 22  |  Alamat I2C: 0x27  |  Resolusi: 16 karakter × 2 baris
+  </text>
+  <text x="45" y="422" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#1E293B">
+    Pewaktuan Display:
+  </text>
+  <text x="185" y="422" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" fill="#475569">
+    Rotasi Halaman: <tspan font-family="'Courier New', monospace">LCD_PAGE_INTERVAL_MS = 2500</tspan> ms  |  Refresh Layar: <tspan font-family="'Courier New', monospace">250</tspan> ms
+  </text>
+</svg>

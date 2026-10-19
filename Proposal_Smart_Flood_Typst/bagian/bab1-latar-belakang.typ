@@ -1,0 +1,14 @@
+= Latar Belakang
+
+Banjir merupakan salah satu bencana hidrometeorologis tahunan yang paling sering melanda wilayah perkotaan dan kawasan Daerah Aliran Sungai (DAS) di Indonesia. Tingginya intensitas curah hujan yang dipicu oleh anomali cuaca global, laju sedimentasi drainase, serta berkurangnya daerah resapan air sering kali menyebabkan volume genangan air meningkat secara drastis dalam tempo yang relatif singkat. Dalam konteks mitigasi bencana, keterlambatan informasi kenaikan muka air ke tingkat kritis menjadi faktor dominan yang mengakibatkan timbulnya kerugian harta benda, lumpuhnya aktivitas sosial-ekonomi, hingga ancaman keselamatan jiwa warga.
+
+Hingga saat ini, sebagian besar pemantauan ketinggian air pada saluran pembuangan, pintu air, maupun wadah retensi lokal masih mengandalkan pengamatan visual manual menggunakan mistar peilskal. Metode konvensional ini memiliki sejumlah kelemahan mendasar:
+1. Menuntut kehadiran fisik petugas di lapangan pada saat kondisi cuaca ekstrem yang berisiko tinggi;
+2. Bersifat diskret dan memiliki latensi pelaporan informasi yang lama; serta
+3. Rentan terhadap kesalahan pembacaan (_human error_) terutama pada malam hari atau kondisi minim cahaya.
+
+Perkembangan teknologi _Internet of Things_ (IoT) menawarkan paradigma baru dalam sistem pemantauan lingkungan secara nir-kabel, _real-time_, dan nir-kontak. Melalui pemanfaatan mikrokontroler berkemampuan tinggi seperti ESP32 yang telah terintegrasi dengan modul konektivitas Wi-Fi 2,4 GHz dan _transceiver_ sensor ultrasonik HC-SR04, ketinggian muka air dapat dideteksi secara presisi tanpa bersentuhan langsung dengan cairan korosif atau berarus deras.
+
+Lebih jauh, sistem peringatan dini yang andal memerlukan integrasi menyeluruh antara aktuator fisik di lapangan dengan sistem informasi berbasis komputasi jarak jauh. Pada sisi perangkat keras fisik (_edge device_), peringatan dini harus mampu mengabarkan bahaya secara instan kepada masyarakat sekitar melalui perpaduan alarm audio frekuensi tinggi (buzzer piezoelektrik 1000 Hz), animasi visual stroboskopik LED multi-tahap (Hijau/Aman, Kuning/Siaga, dan tiga LED Merah/Bahaya berpola pancaran tengah), serta teks status dinamis pada layar LCD 16×2 berbasis komunikasi bus I2C. 
+
+Sementara pada sisi pemantauan jarak jauh (_remote monitoring_), data telemetri harus ditransmisikan secara konsisten menggunakan protokol jaringan ringan (HTTP POST JSON dan MQTT) menuju server _backend_ berkinerja tinggi, untuk kemudian divisualisasikan pada antarmuka web modern berbasis _Digital Twin 3D Reservoir_. Melalui representasi kembar digital 3D yang merefleksikan dinamika volume air riil secara simultan beserta grafik hidrograf historis, pemangku kepentingan (*stakeholders*) dapat memonitor fluktuasi air secara holistik dan mengambil keputusan mitigasi secara cepat, terukur, dan berbasis data ilmiah.
