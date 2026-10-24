@@ -21,7 +21,7 @@
 
   #v(0.5cm)
 
-  *Disusun oleh #kelompok (#kelas):*
+  *Disusun oleh #kelompok:*
 
   #v(0.3cm)
   #align(center)[
@@ -36,8 +36,8 @@
 
   #v(1fr)
 
-  *#program-studi* \
-  *#fakultas* \
   *#universitas* \
+  *#fakultas* \
+  *#program-studi* \
   *#tahun*
 ]

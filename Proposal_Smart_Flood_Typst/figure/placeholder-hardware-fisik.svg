@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="580" viewBox="0 0 960 580">
+  <defs>
+    <!-- Background styling -->
+    <linearGradient id="hwBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </linearGradient>
+
+    <!-- Breadboard Gradient -->
+    <linearGradient id="breadboardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </linearGradient>
+
+    <filter id="hwShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0F172A" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Container Outer Box -->
+  <rect width="960" height="580" rx="14" fill="url(#hwBg)" stroke="#CBD5E1" stroke-width="1.5"/>
+
+  <!-- Top Banner -->
+  <g transform="translate(0, 36)">
+    <text x="480" y="8" font-family="'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#0F172A">
+      DOKUMENTASI PERAKITAN PERANGKAT KERAS FISIK (HARDWARE PROTOTYPE)
+    </text>
+    <text x="480" y="28" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" text-anchor="middle" fill="#64748B">
+      Unit Uji Prototipe Fisik ESP32, Sensor Ultrasonik HC-SR04, LCD 16×2 I2C, Barisan LED, &amp; Buzzer Piezo
+    </text>
+  </g>
+
+  <!-- Left Main Illustration: Physical Assembly Visualization -->
+  <g transform="translate(40, 85)" filter="url(#hwShadow)">
+    <!-- Breadboard Baseplate -->
+    <rect width="520" height="440" rx="12" fill="url(#breadboardGrad)" stroke="#94A3B8" stroke-width="2"/>
+    
+    <!-- Power Rails Top -->
+    <line x1="20" y1="20" x2="500" y2="20" stroke="#EF4444" stroke-width="2.5"/>
+    <line x1="20" y1="26" x2="500" y2="26" stroke="#3B82F6" stroke-width="2.5"/>
+
+    <!-- ESP32 DevKit Module -->
+    <g transform="translate(30, 60)">
+      <rect width="130" height="230" rx="6" fill="#1E293B" stroke="#0F172A" stroke-width="2"/>
+      <!-- ESP-WROOM-32 Metal Shield -->
+      <rect x="18" y="15" width="94" height="90" rx="4" fill="#94A3B8" stroke="#64748B" stroke-width="1.5"/>
+      <text x="65" y="65" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="bold" fill="#0F172A" text-anchor="middle">
+        ESP-WROOM-32
+      </text>
+      <!-- Wi-Fi PCB Antenna -->
+      <rect x="25" y="112" width="80" height="20" rx="2" fill="#D97706" opacity="0.8"/>
+      <!-- Micro-USB / Type-C Port -->
+      <rect x="42" y="215" width="46" height="15" rx="3" fill="#64748B"/>
+      <!-- Text Indicator -->
+      <text x="65" y="170" font-family="'Courier New', monospace" font-size="10" font-weight="bold" fill="#38BDF8" text-anchor="middle">
+        ESP32 DEVKIT-V4
+      </text>
+      <text x="65" y="185" font-family="'Courier New', monospace" font-size="9" fill="#94A3B8" text-anchor="middle">
+        Dual-Core 240MHz
+      </text>
+    </g>
+
+    <!-- LCD 16x2 Display Module -->
+    <g transform="translate(190, 60)">
+      <rect width="300" height="150" rx="6" fill="#065F46" stroke="#064E3B" stroke-width="2"/>
+      <!-- Active LCD Screen -->
+      <rect x="20" y="25" width="260" height="85" rx="4" fill="#0E4DA4" stroke="#082F64" stroke-width="2"/>
+      <text x="32" y="60" font-family="'Courier New', monospace" font-size="14" font-weight="bold" fill="#FFFFFF" letter-spacing="1">
+        Jrk:40cm  Tgi:60cm
+      </text>
+      <text x="32" y="90" font-family="'Courier New', monospace" font-size="14" font-weight="bold" fill="#FDE047" letter-spacing="1">
+        STATUS: SIAGA 2.0s
+      </text>
+      <!-- I2C Backpack Adapter PCF8574 -->
+      <rect x="220" y="118" width="65" height="24" rx="3" fill="#1E293B"/>
+      <text x="252" y="134" font-family="'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="bold" fill="#38BDF8" text-anchor="middle">
+        I2C 0x27
+      </text>
+    </g>
+
+    <!-- Ultrasonic Sensor HC-SR04 -->
+    <g transform="translate(190, 230)">
+      <rect width="180" height="100" rx="6" fill="#0284C7" stroke="#0369A1" stroke-width="2"/>
+      <circle cx="50" cy="50" r="30" fill="#E2E8F0" stroke="#475569" stroke-width="2"/>
+      <circle cx="50" cy="50" r="16" fill="#94A3B8"/>
+      <text x="50" y="55" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#0F172A" text-anchor="middle">TRIG</text>
+
+      <circle cx="130" cy="50" r="30" fill="#E2E8F0" stroke="#475569" stroke-width="2"/>
+      <circle cx="130" cy="50" r="16" fill="#94A3B8"/>
+      <text x="130" y="55" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#0F172A" text-anchor="middle">ECHO</text>
+
+      <text x="90" y="92" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">
+        HC-SR04 ULTRASONIK
+      </text>
+    </g>
+
+    <!-- 5x LED Indicators -->
+    <g transform="translate(390, 230)">
+      <rect width="100" height="100" rx="6" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+      <text x="50" y="20" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#0F172A" text-anchor="middle">
+        5× LED BAR
+      </text>
+      <!-- Green -->
+      <circle cx="20" cy="45" r="8" fill="#22C55E" stroke="#15803D" stroke-width="1.5"/>
+      <text x="20" y="65" font-family="'Segoe UI', sans-serif" font-size="8" fill="#15803D" text-anchor="middle">G25</text>
+      <!-- Yellow -->
+      <circle cx="40" cy="45" r="8" fill="#EAB308" stroke="#A16207" stroke-width="1.5"/>
+      <text x="40" y="65" font-family="'Segoe UI', sans-serif" font-size="8" fill="#A16207" text-anchor="middle">G26</text>
+      <!-- 3x Red -->
+      <circle cx="60" cy="45" r="8" fill="#EF4444" stroke="#B91C1C" stroke-width="1.5"/>
+      <text x="60" y="65" font-family="'Segoe UI', sans-serif" font-size="8" fill="#B91C1C" text-anchor="middle">G27</text>
+      <circle cx="80" cy="45" r="8" fill="#EF4444" stroke="#B91C1C" stroke-width="1.5"/>
+      <text x="80" y="65" font-family="'Segoe UI', sans-serif" font-size="8" fill="#B91C1C" text-anchor="middle">G33</text>
+      <!-- Red 3 center -->
+      <circle cx="50" cy="80" r="8" fill="#EF4444" stroke="#B91C1C" stroke-width="1.5"/>
+      <text x="50" y="95" font-family="'Segoe UI', sans-serif" font-size="8" fill="#B91C1C" text-anchor="middle">G32</text>
+    </g>
+
+    <!-- Buzzer Module -->
+    <g transform="translate(190, 350)">
+      <circle cx="45" cy="40" r="30" fill="#1E293B" stroke="#0F172A" stroke-width="2"/>
+      <circle cx="45" cy="40" r="8" fill="#CBD5E1"/>
+      <text x="45" y="44" font-family="'Segoe UI', sans-serif" font-size="8" font-weight="bold" fill="#0F172A" text-anchor="middle">+</text>
+      <text x="95" y="36" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="bold" fill="#0F172A">
+        Piezo Buzzer 5V
+      </text>
+      <text x="95" y="52" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#64748B">
+        Pin GPIO 14 (Alarm 1000 Hz)
+      </text>
+    </g>
+
+    <!-- Power Rail Bottom -->
+    <line x1="20" y1="415" x2="500" y2="415" stroke="#3B82F6" stroke-width="2.5"/>
+    <line x1="20" y1="421" x2="500" y2="421" stroke="#EF4444" stroke-width="2.5"/>
+  </g>
+
+  <!-- Right Panel: Photo Placeholder & Instructions -->
+  <g transform="translate(585, 85)" filter="url(#hwShadow)">
+    <rect width="335" height="440" rx="12" fill="#FFFFFF" stroke="#0284C7" stroke-width="2"/>
+    
+    <!-- Photo Frame Dashed Border -->
+    <rect x="20" y="25" width="295" height="240" rx="8" fill="#F0F9FF" stroke="#0284C7" stroke-width="2" stroke-dasharray="8,6"/>
+    
+    <!-- Camera Icon -->
+    <g transform="translate(137, 65)">
+      <rect x="0" y="10" width="60" height="45" rx="6" fill="#0284C7"/>
+      <polygon points="18,10 24,2 36,2 42,10" fill="#0369A1"/>
+      <circle cx="30" cy="32" r="14" fill="#FFFFFF"/>
+      <circle cx="30" cy="32" r="9" fill="#0284C7"/>
+      <circle cx="46" cy="18" r="3" fill="#F8FAFC"/>
+    </g>
+
+    <!-- Text inside Photo Placeholder -->
+    <text x="167" y="145" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="bold" fill="#0369A1" text-anchor="middle">
+      AREA DOKUMENTASI FOTO
+    </text>
+    <text x="167" y="165" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569" text-anchor="middle">
+      Foto Prototipe Fisik &amp; Wadah Uji
+    </text>
+    
+    <rect x="35" y="185" width="265" height="60" rx="6" fill="#E0F2FE"/>
+    <text x="167" y="205" font-family="'Courier New', monospace" font-size="10.5" font-weight="bold" fill="#0369A1" text-anchor="middle">
+      Path: figure/foto-hardware.jpg
+    </text>
+    <text x="167" y="222" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#475569" text-anchor="middle">
+      (Otomatis dirender jika file tersedia)
+    </text>
+
+    <!-- Checklist Kesiapan Demo UTS -->
+    <g transform="translate(20, 285)">
+      <text x="0" y="15" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">
+        Spesifikasi Prototipe Demo UTS:
+      </text>
+
+      <text x="5" y="38" font-family="'Segoe UI', sans-serif" font-size="10.5" fill="#059669">✓ Mikrokontroler: ESP32 DevKit-C V4</text>
+      <text x="5" y="58" font-family="'Segoe UI', sans-serif" font-size="10.5" fill="#059669">✓ Wadah Simulasi: Silinder Transparan 100 cm</text>
+      <text x="5" y="78" font-family="'Segoe UI', sans-serif" font-size="10.5" fill="#059669">✓ Sensor Level: HC-SR04 Nir-Sentuh (ToF)</text>
+      <text x="5" y="98" font-family="'Segoe UI', sans-serif" font-size="10.5" fill="#059669">✓ Display Lapangan: LCD 16×2 PCF8574 0x27</text>
+      <text x="5" y="118" font-family="'Segoe UI', sans-serif" font-size="10.5" fill="#059669">✓ Alarm Lokal: Buzzer 1000 Hz + Strobe LED</text>
+      <text x="5" y="138" font-family="'Segoe UI', sans-serif" font-size="10.5" fill="#059669">✓ Telemetri: HTTP JSON (192.168.1.8:8080)</text>
+    </g>
+  </g>
+</svg>

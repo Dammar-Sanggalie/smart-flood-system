@@ -1,0 +1,310 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgCanvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </linearGradient>
+
+    <!-- Card Gradients -->
+    <linearGradient id="gradPerception" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#ECFDF5"/>
+    </linearGradient>
+    <linearGradient id="gradEdge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EFF6FF"/>
+    </linearGradient>
+    <linearGradient id="gradTransport" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F5F3FF"/>
+    </linearGradient>
+    <linearGradient id="gradBackend" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFFBEB"/>
+    </linearGradient>
+    <linearGradient id="gradFrontend" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F0F9FF"/>
+    </linearGradient>
+
+    <!-- Shadows -->
+    <filter id="softShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+
+    <!-- Arrow Markers -->
+    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#059669"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#2563EB"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#7C3AED"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#D97706"/>
+    </marker>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect width="960" height="640" rx="14" fill="url(#bgCanvas)" stroke="#CBD5E1" stroke-width="1.5"/>
+
+  <!-- Header Section -->
+  <g transform="translate(0, 36)">
+    <rect x="230" y="-12" width="500" height="42" rx="21" fill="#0F172A" opacity="0.05"/>
+    <text x="480" y="8" font-family="'Segoe UI', Roboto, 'Helvetica Neue', sans-serif" font-size="18" font-weight="800" text-anchor="middle" fill="#0F172A" letter-spacing="0.5">
+      ARSITEKTUR EMPAT TINGKAT (FOUR-TIER ARCHITECTURE) SISTEM IOT
+    </text>
+    <text x="480" y="28" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" text-anchor="middle" fill="#64748B">
+      Smart Flood Detection and Early Warning System — Berbasis ESP32, REST SSE, &amp; Digital Twin 3D
+    </text>
+  </g>
+
+  <!-- ================= TIER 1: PERCEPTION LAYER ================= -->
+  <g transform="translate(25, 95)" filter="url(#softShadow)">
+    <rect width="170" height="490" rx="10" fill="url(#gradPerception)" stroke="#059669" stroke-width="2"/>
+    <!-- Header Badge -->
+    <path d="M 0 10 Q 0 0 10 0 L 160 0 Q 170 0 170 10 L 170 38 L 0 38 Z" fill="#059669"/>
+    <text x="85" y="24" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+      1. PERCEPTION LAYER
+    </text>
+
+    <!-- HC-SR04 Box -->
+    <rect x="12" y="52" width="146" height="98" rx="6" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.2"/>
+    <rect x="18" y="58" width="60" height="18" rx="3" fill="#ECFDF5"/>
+    <text x="22" y="71" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#059669">SENSOR</text>
+    <text x="18" y="90" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">HC-SR04</text>
+    <text x="18" y="106" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Akustik 40 kHz</text>
+    <text x="18" y="122" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• TRIG: GPIO 5</text>
+    <text x="18" y="138" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• ECHO: GPIO 18</text>
+
+    <!-- LCD 16x2 Box -->
+    <rect x="12" y="160" width="146" height="98" rx="6" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.2"/>
+    <rect x="18" y="166" width="60" height="18" rx="3" fill="#ECFDF5"/>
+    <text x="22" y="179" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#059669">DISPLAY</text>
+    <text x="18" y="198" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">LCD 16×2 I2C</text>
+    <text x="18" y="214" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Alamat 0x27 (PCF8574)</text>
+    <text x="18" y="230" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• SDA: GPIO 21</text>
+    <text x="18" y="246" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• SCL: GPIO 22</text>
+
+    <!-- LED Status Bar -->
+    <rect x="12" y="268" width="146" height="110" rx="6" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.2"/>
+    <rect x="18" y="274" width="60" height="18" rx="3" fill="#ECFDF5"/>
+    <text x="22" y="287" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#059669">AKTUATOR</text>
+    <text x="18" y="306" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">5× LED Bar</text>
+    <text x="18" y="322" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#16A34A">🟢 Hijau (SAFE): G25</text>
+    <text x="18" y="338" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#D97706">🟡 Kuning (WARN): G26</text>
+    <text x="18" y="354" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#DC2626">🔴 3× Merah: G27,33,32</text>
+    <text x="18" y="370" font-family="'Segoe UI', Roboto, sans-serif" font-size="9" fill="#64748B">  (Running Strobe Mode)</text>
+
+    <!-- Buzzer Box -->
+    <rect x="12" y="388" width="146" height="88" rx="6" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1.2"/>
+    <rect x="18" y="394" width="60" height="18" rx="3" fill="#ECFDF5"/>
+    <text x="22" y="407" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#059669">ALARM</text>
+    <text x="18" y="426" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">Piezo Buzzer</text>
+    <text x="18" y="442" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• GPIO 14 (Active 5V)</text>
+    <text x="18" y="458" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• 1000 Hz Continuous</text>
+  </g>
+
+  <!-- Connect 1 -> 2 -->
+  <path d="M 197 340 L 221 340" stroke="#059669" stroke-width="3" stroke-dasharray="4,3" marker-end="url(#arrowGreen)"/>
+
+  <!-- ================= TIER 2: EDGE COMPUTING LAYER ================= -->
+  <g transform="translate(225, 95)" filter="url(#softShadow)">
+    <rect width="170" height="490" rx="10" fill="url(#gradEdge)" stroke="#2563EB" stroke-width="2"/>
+    <!-- Header Badge -->
+    <path d="M 0 10 Q 0 0 10 0 L 160 0 Q 170 0 170 10 L 170 38 L 0 38 Z" fill="#2563EB"/>
+    <text x="85" y="24" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+      2. EDGE COMPUTING
+    </text>
+
+    <!-- ESP32 Chip Box -->
+    <rect x="12" y="52" width="146" height="110" rx="6" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.2"/>
+    <rect x="18" y="58" width="60" height="18" rx="3" fill="#EFF6FF"/>
+    <text x="22" y="71" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#2563EB">HARDWARE</text>
+    <text x="18" y="92" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">ESP32 DevKit-C</text>
+    <text x="18" y="108" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Xtensa 32-bit LX6</text>
+    <text x="18" y="124" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Dual Core 240 MHz</text>
+    <text x="18" y="140" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• 520 KB SRAM</text>
+    <text x="18" y="156" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Wi-Fi + BLE 4.2</text>
+
+    <!-- Non-blocking millis() Box -->
+    <rect x="12" y="172" width="146" height="98" rx="6" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.2"/>
+    <rect x="18" y="178" width="70" height="18" rx="3" fill="#EFF6FF"/>
+    <text x="22" y="191" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="bold" fill="#2563EB">SCHEDULER</text>
+    <text x="18" y="210" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="bold" fill="#0F172A">Non-Blocking</text>
+    <text x="18" y="226" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• millis() Timers</text>
+    <text x="18" y="242" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Sensor: 100 ms</text>
+    <text x="18" y="258" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• LCD Page: 2500 ms</text>
+
+    <!-- FSM Logic Box -->
+    <rect x="12" y="280" width="146" height="102" rx="6" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.2"/>
+    <rect x="18" y="286" width="65" height="18" rx="3" fill="#EFF6FF"/>
+    <text x="22" y="299" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#2563EB">LOGIKA</text>
+    <text x="18" y="318" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="bold" fill="#0F172A">4-State FSM</text>
+    <text x="18" y="334" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• SAFE (&lt; 60 cm)</text>
+    <text x="18" y="350" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• WARNING (60-79 cm)</text>
+    <text x="18" y="366" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• DANGER (≥ 80 cm)</text>
+
+    <!-- Telemetry Packager Box -->
+    <rect x="12" y="392" width="146" height="84" rx="6" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.2"/>
+    <rect x="18" y="398" width="60" height="18" rx="3" fill="#EFF6FF"/>
+    <text x="22" y="411" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#2563EB">SERIALIZER</text>
+    <text x="18" y="430" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="bold" fill="#0F172A">JSON Payload</text>
+    <text x="18" y="446" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• ArduinoJson v6</text>
+    <text x="18" y="462" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Interval: 2.0 detik</text>
+  </g>
+
+  <!-- Connect 2 -> 3 -->
+  <path d="M 397 340 L 421 340" stroke="#2563EB" stroke-width="3" marker-end="url(#arrowBlue)"/>
+
+  <!-- ================= TIER 3: NETWORK & TRANSPORT LAYER ================= -->
+  <g transform="translate(425, 95)" filter="url(#softShadow)">
+    <rect width="150" height="490" rx="10" fill="url(#gradTransport)" stroke="#7C3AED" stroke-width="2"/>
+    <!-- Header Badge -->
+    <path d="M 0 10 Q 0 0 10 0 L 140 0 Q 150 0 150 10 L 150 38 L 0 38 Z" fill="#7C3AED"/>
+    <text x="75" y="24" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+      3. TRANSPORT LAYER
+    </text>
+
+    <!-- Wi-Fi Link Box -->
+    <rect x="10" y="52" width="130" height="100" rx="6" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.2"/>
+    <rect x="16" y="58" width="55" height="18" rx="3" fill="#F5F3FF"/>
+    <text x="20" y="71" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="bold" fill="#7C3AED">MEDIA</text>
+    <text x="16" y="92" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">Wi-Fi 802.11</text>
+    <text x="16" y="108" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• 2.4 GHz Band</text>
+    <text x="16" y="124" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Station Mode</text>
+    <text x="16" y="140" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Auto Reconnect</text>
+
+    <!-- HTTP REST Box -->
+    <rect x="10" y="162" width="130" height="136" rx="6" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.2"/>
+    <rect x="16" y="168" width="55" height="18" rx="3" fill="#F5F3FF"/>
+    <text x="20" y="181" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="bold" fill="#7C3AED">PRIMARY</text>
+    <text x="16" y="202" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">HTTP REST</text>
+    <text x="16" y="218" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• POST /api/readings</text>
+    <text x="16" y="234" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Port 8080</text>
+    <text x="16" y="250" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• JSON Body</text>
+    <text x="16" y="266" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Latensi &lt; 80 ms</text>
+    <text x="16" y="282" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Keep-Alive</text>
+
+    <!-- MQTT Box -->
+    <rect x="10" y="308" width="130" height="136" rx="6" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1.2"/>
+    <rect x="16" y="314" width="60" height="18" rx="3" fill="#F5F3FF"/>
+    <text x="20" y="327" font-family="'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="bold" fill="#7C3AED">FAILOVER</text>
+    <text x="16" y="348" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">MQTT Broker</text>
+    <text x="16" y="364" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• test.mosquitto.org</text>
+    <text x="16" y="380" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Port 1883 TCP</text>
+    <text x="16" y="396" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• QoS 0 (Fast Fire)</text>
+    <text x="16" y="412" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Topic /ti2024i/...</text>
+    <text x="16" y="428" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Sub/Pub PubSub</text>
+  </g>
+
+  <!-- Connect 3 -> 4A -->
+  <path d="M 577 340 L 601 340" stroke="#7C3AED" stroke-width="3" marker-end="url(#arrowPurple)"/>
+
+  <!-- ================= TIER 4A: BACKEND DAEMON ================= -->
+  <g transform="translate(605, 95)" filter="url(#softShadow)">
+    <rect width="150" height="490" rx="10" fill="url(#gradBackend)" stroke="#D97706" stroke-width="2"/>
+    <!-- Header Badge -->
+    <path d="M 0 10 Q 0 0 10 0 L 140 0 Q 150 0 150 10 L 150 38 L 0 38 Z" fill="#D97706"/>
+    <text x="75" y="24" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+      4A. BACKEND DAEMON
+    </text>
+
+    <!-- Go Server Box -->
+    <rect x="10" y="52" width="130" height="110" rx="6" fill="#FFFFFF" stroke="#FDE68A" stroke-width="1.2"/>
+    <rect x="16" y="58" width="50" height="18" rx="3" fill="#FFFBEB"/>
+    <text x="20" y="71" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="bold" fill="#D97706">SERVER</text>
+    <text x="16" y="92" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">Go Backend</text>
+    <text x="16" y="108" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Chi / Fiber Router</text>
+    <text x="16" y="124" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Goroutines Async</text>
+    <text x="16" y="140" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• High Throughput</text>
+    <text x="16" y="156" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Memory &lt; 20 MB</text>
+
+    <!-- SSE Broadcaster Box -->
+    <rect x="10" y="172" width="130" height="110" rx="6" fill="#FFFFFF" stroke="#FDE68A" stroke-width="1.2"/>
+    <rect x="16" y="178" width="60" height="18" rx="3" fill="#FFFBEB"/>
+    <text x="20" y="191" font-family="'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="bold" fill="#D97706">REAL-TIME</text>
+    <text x="16" y="212" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">SSE Stream</text>
+    <text x="16" y="228" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Server-Sent Events</text>
+    <text x="16" y="244" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Endpoint /api/stream</text>
+    <text x="16" y="260" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Zero-Polling Web</text>
+    <text x="16" y="276" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Auto Reconnect</text>
+
+    <!-- SQLite / Memory Box -->
+    <rect x="10" y="292" width="130" height="110" rx="6" fill="#FFFFFF" stroke="#FDE68A" stroke-width="1.2"/>
+    <rect x="16" y="298" width="55" height="18" rx="3" fill="#FFFBEB"/>
+    <text x="20" y="311" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="bold" fill="#D97706">STORAGE</text>
+    <text x="16" y="332" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">SQLite DB</text>
+    <text x="16" y="348" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Time-series logs</text>
+    <text x="16" y="364" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Circular Cache</text>
+    <text x="16" y="380" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Query Hydrograph</text>
+    <text x="16" y="396" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• WAL Journal Mode</text>
+  </g>
+
+  <!-- Connect 4A -> 4B -->
+  <path d="M 757 340 L 781 340" stroke="#D97706" stroke-width="3" marker-end="url(#arrowAmber)"/>
+
+  <!-- ================= TIER 4B: PRESENTATION LAYER ================= -->
+  <g transform="translate(785, 95)" filter="url(#softShadow)">
+    <rect width="150" height="490" rx="10" fill="url(#gradFrontend)" stroke="#0284C7" stroke-width="2"/>
+    <!-- Header Badge -->
+    <path d="M 0 10 Q 0 0 10 0 L 140 0 Q 150 0 150 10 L 150 38 L 0 38 Z" fill="#0284C7"/>
+    <text x="75" y="24" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+      4B. PRESENTATION
+    </text>
+
+    <!-- Next.js Box -->
+    <rect x="10" y="52" width="130" height="110" rx="6" fill="#FFFFFF" stroke="#BAE6FD" stroke-width="1.2"/>
+    <rect x="16" y="58" width="55" height="18" rx="3" fill="#F0F9FF"/>
+    <text x="20" y="71" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="bold" fill="#0284C7">WEB APP</text>
+    <text x="16" y="92" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">Next.js 14</text>
+    <text x="16" y="108" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• React 18 App Router</text>
+    <text x="16" y="124" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Responsive Layout</text>
+    <text x="16" y="140" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Glassmorphism UI</text>
+    <text x="16" y="156" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Port 3000 Client</text>
+
+    <!-- 3D Digital Twin Box -->
+    <rect x="10" y="172" width="130" height="130" rx="6" fill="#FFFFFF" stroke="#BAE6FD" stroke-width="1.2"/>
+    <rect x="16" y="178" width="60" height="18" rx="3" fill="#F0F9FF"/>
+    <text x="20" y="191" font-family="'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="bold" fill="#0284C7">DIGITAL TWIN</text>
+    <text x="16" y="212" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">Three.js 3D</text>
+    <text x="16" y="228" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• React Three Fiber</text>
+    <text x="16" y="244" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Wave Ripples Sim</text>
+    <text x="16" y="260" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Dynamic Damping</text>
+    <text x="16" y="276" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Ocean Blue Water</text>
+    <text x="16" y="292" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Transparent Tank</text>
+
+    <!-- Hydrograph Chart Box -->
+    <rect x="10" y="312" width="130" height="110" rx="6" fill="#FFFFFF" stroke="#BAE6FD" stroke-width="1.2"/>
+    <rect x="16" y="318" width="55" height="18" rx="3" fill="#F0F9FF"/>
+    <text x="20" y="331" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="bold" fill="#0284C7">TELEMETRI</text>
+    <text x="16" y="352" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="bold" fill="#0F172A">Hidrograf Live</text>
+    <text x="16" y="368" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• 50 Data Poin Terakhir</text>
+    <text x="16" y="384" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Threshold Warning</text>
+    <text x="16" y="400" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Threshold Danger</text>
+    <text x="16" y="416" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">• Trend Direction</text>
+  </g>
+
+  <!-- Bottom Legend Bar -->
+  <g transform="translate(40, 600)">
+    <text x="0" y="16" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="bold" fill="#475569">Protokol Komunikasi:</text>
+    
+    <circle cx="140" cy="12" r="5" fill="#059669"/>
+    <text x="152" y="16" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">GPIO / I2C Bus</text>
+
+    <circle cx="270" cy="12" r="5" fill="#2563EB"/>
+    <text x="282" y="16" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">SPI / Bus Internal</text>
+
+    <circle cx="415" cy="12" r="5" fill="#7C3AED"/>
+    <text x="427" y="16" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">TCP/IP Wi-Fi (JSON/REST)</text>
+
+    <circle cx="610" cy="12" r="5" fill="#D97706"/>
+    <text x="622" y="16" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">HTTP SSE EventStream</text>
+
+    <circle cx="790" cy="12" r="5" fill="#0284C7"/>
+    <text x="802" y="16" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">WebGL / Three.js Canvas</text>
+  </g>
+</svg>

@@ -1,32 +1,23 @@
 #import "/template/components.typ": *
+#import "/config/gambar.typ": *
 
 = Arsitektur dan Komponen IoT
 
 == Arsitektur Sistem Berlapis (Four-Tier Architecture)
 
-Arsitektur sistem _Smart Flood Detection and Early Warning System_ dirancang mengacu pada standar empat lapisan arsitektur IoT (_Four-Tier IoT Architecture_), yang memisahkan tanggung jawab fungsional mulai dari persepsi fisik hingga presentasi analitik berbasis web.
+Arsitektur sistem _Smart Flood Detection and Early Warning System_ dirancang mengacu pada standar empat lapisan arsitektur IoT (_Four-Tier IoT Architecture_), yang memisahkan tanggung jawab fungsional secara modular mulai dari persepsi fisik hingga presentasi analitik berbasis web, sebagaimana diilustrasikan pada @gbr-arsitektur.
 
 #figure(
-  grid(
-    columns: (1fr, 0.6cm, 1.2fr, 0.6cm, 1.2fr),
-    row-gutter: 8pt,
-    align: center + horizon,
-    blok[*Perception Layer* \ HC-SR04 (Ultrasonik) \ LCD, 5 LED, Buzzer], panah(),
-    blok[*Edge Processing* \ ESP32 DevKit-C V4 \ Multi-interval Timer], panah(),
-    blok[*Transport Layer* \ Wi-Fi IEEE 802.11 b/g/n \ HTTP POST (JSON) / MQTT],
-    [], [], [], [], panah(arah: "b"),
-    [], [], [], [], blok[*Backend Daemon* \ Go HTTP/SSE REST Server \ Port 8080],
-    [], [], [], [], panah(arah: "b"),
-    [], [], [], [], blok[*Presentation Layer* \ Next.js + Three.js 3D Twin \ Port 3000 (React Three Fiber)],
-  ),
-  caption: [Diagram arsitektur sistem IoT cerdas pendeteksi banjir],
+  image(fig-arsitektur, width: 100%),
+  caption: [Diagram arsitektur sistem IoT empat tingkat (Four-Tier Architecture)],
 ) <gbr-arsitektur>
 
-Uraian tugas fungsional masing-masing lapisan adalah sebagai berikut:
-1. *Lapisan Persepsi dan Aktuasi (_Perception & Actuation Layer_)*: Bertugas mengonversi parameter fisis pantulan gelombang ultrasonik menjadi sinyal listrik serta memberikan umpan balik fisik seketika kepada manusia melalui display LCD, nyala LED multi-tahap, dan bunyi alarm frekuensi $1000$ Hz.
-2. *Lapisan Pemrosesan Tepi (_Edge Processing Layer_)*: Berpusat pada mikrokontroler ESP32 yang mengeksekusi konversi matematika jarak ke tinggi air, memvalidasi integritas data (_threshold clamping_), mengendalikan mesin status bahaya, dan mengelola orkestrasi waktu secara _non-blocking_.
-3. *Lapisan Jaringan dan Transpor (_Network & Transport Layer_)*: Memanfaatkan antarmuka Wi-Fi bawaan ESP32 untuk membungkus data telemetri ke dalam format JSON berbobot ringan (_lightweight payload_) dan mentransmisikannya ke server lokal via protokol HTTP POST atau MQTT.
-4. *Lapisan Aplikasi dan Presentasi (_Application & Presentation Layer_)*: Server _backend_ berbasis bahasa pemrograman Go memproses dan mengarsipkan data telemetri, sedangkan aplikasi web frontend berbasis Next.js menyajikan visualisasi kembar digital 3D (_Digital Twin 3D Reservoir_) dengan simulasi dinamika riak air laut secara real-time.
+Uraian tugas fungsional masing-masing tingkatan adalah sebagai berikut:
+1. *Lapisan Persepsi dan Aktuasi (_Perception & Actuation Layer_)*: Bertugas mengonversi parameter fisis pantulan gelombang ultrasonik menjadi sinyal listrik serta memberikan umpan balik fisik seketika kepada manusia melalui display LCD 16×2, barisan LED multi-warna, dan alarm akustik piezoelektrik berfrekuensi $1000$ Hz.
+2. *Lapisan Pemrosesan Tepi (_Edge Processing Layer_)*: Berpusat pada mikrokontroler ESP32 DevKit-C V4 yang mengeksekusi perhitungan konversi jarak ke tinggi air, memvalidasi integritas data (_threshold clamping_), mengendalikan mesin status bahaya (_Finite State Machine_), dan mengelola orkestrasi waktu secara _non-blocking_.
+3. *Lapisan Jaringan dan Transpor (_Network & Transport Layer_)*: Memanfaatkan antarmuka Wi-Fi bawaan ESP32 untuk membungkus data telemetri ke dalam format JSON berbobot ringan (_lightweight payload_) dan mentransmisikannya ke server lokal via protokol HTTP REST POST (dengan saluran cadangan failover MQTT).
+4. *Lapisan Layanan Backend (_Backend Middleware Daemon_)*: Server _backend_ berbasis bahasa pemrograman Go (Golang) bertindak sebagai _ingestion daemon_ berkecepatan tinggi yang menerima _stream_ pembacaan telemetri via REST `/api/readings`, mengarsipkan histori pembacaan ke basis data SQLite, dan menyalurkan data ke antarmuka web melalui _Server-Sent Events_ (SSE).
+5. *Lapisan Aplikasi dan Presentasi (_Application & Presentation Layer_)*: Aplikasi web frontend modern berbasis Next.js 14 menyajikan visualisasi kembar digital 3D (_Digital Twin 3D Reservoir_) dengan simulasi dinamika riak air laut secara real-time dan hidrograf telemetri interaktif.
 
 == Spesifikasi Komponen Perangkat Keras
 
@@ -53,7 +44,7 @@ Seluruh komponen perangkat keras yang telah diimplementasikan dan diuji pada pro
 
 == Pemetaan Pin GPIO Mikrokontroler ESP32
 
-Konfigurasi pengkabelan antara modul periferal fisik dan pin GPIO pada mikrokontroler ESP32 disusun secara presisi untuk menjamin kompatibilitas sinyal dan mencegah interferensi, sebagaimana dirangkum pada @tbl-pin-esp32.
+Konfigurasi pengkabelan antara modul periferal fisik dan pin GPIO pada mikrokontroler ESP32 disusun secara presisi untuk menjamin integritas sinyal dan menghindari konflik bus komunikasi I2C, sebagaimana dirangkum pada @tbl-pin-esp32.
 
 #figure(
   tabel(
@@ -75,6 +66,24 @@ Konfigurasi pengkabelan antara modul periferal fisik dan pin GPIO pada mikrokont
   caption: [Pemetaan pin GPIO mikrokontroler ESP32 pada sirkuit fisik],
   kind: table,
 ) <tbl-pin-esp32>
+
+Untuk memberikan gambaran perkabelan sirkuit secara visual dan memudahkan verifikasi jalur pinout saat perakitan laboratorium, diagram skematik rangkaian simulasi Wokwi disajikan pada @gbr-wokwi.
+
+#figure(
+  image(fig-wokwi, width: 100%),
+  caption: [Diagram skematik perkabelan sirkuit pada platform simulasi Wokwi],
+) <gbr-wokwi>
+
+== Dokumentasi Perakitan Prototipe Fisik (Hardware Assembly)
+
+Sebagai pemenuhan kriteria demonstrasi langsung (_physical prototype demo_) di depan dosen penguji pada sesi Ujian Tengah Semester (UTS), prototipe fisik telah dirakit di atas _half-size breadboard_ 400 titik kontak dengan mengintegrasikan seluruh komponen fisik yang diuji coba secara fungsional. Dokumentasi unit prototipe fisik disajikan pada @gbr-hardware-fisik.
+
+#figure(
+  image(fig-hardware, width: 100%),
+  caption: [Dokumentasi perakitan unit prototipe perangkat keras fisik pendeteksi banjir],
+) <gbr-hardware-fisik>
+
+Keberadaan diagram skematik virtual Wokwi (@gbr-wokwi) berdampingan dengan unit fisik prototipe (@gbr-hardware-fisik) membuktikan kesiapan kelompok baik secara teoritis (skema perkabelan terstandar) maupun secara empiris (alat bekerja dan siap didemonstrasikan).
 
 == Komponen Perangkat Lunak (Software Stack)
 

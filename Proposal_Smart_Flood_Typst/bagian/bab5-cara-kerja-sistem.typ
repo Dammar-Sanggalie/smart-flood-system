@@ -1,4 +1,5 @@
 #import "/template/components.typ": *
+#import "/config/gambar.typ": *
 
 = Cara Kerja Sistem
 
@@ -29,8 +30,8 @@ Sistem mengimplementasikan mesin status empat kondisi (_Four-State FSM_) untuk m
   tabel(
     (0.9fr, 1fr, 0.9fr, 1.2fr, 1fr),
     ("Status", "Syarat Ketinggian", "Indikator LED", "Animasi Khusus", "Buzzer"),
-    [SAFE (Aman)], [$h_("air") < 50.0$ cm], [Hijau: AKTIF \ Lainnya: MATI], [Penerangan statis normal], [Mati (_silent_)],
-    [WARNING (Siaga)], [$50.0 <= h_("air") < 80.0$ cm], [Kuning: AKTIF \ Lainnya: MATI], [Penerangan statis siaga], [Mati (_silent_)],
+    [SAFE (Aman)], [$h_("air") < 60.0$ cm], [Hijau: AKTIF \ Lainnya: MATI], [Penerangan statis normal], [Mati (_silent_)],
+    [WARNING (Siaga)], [$60.0 <= h_("air") < 80.0$ cm], [Kuning: AKTIF \ Lainnya: MATI], [Penerangan statis siaga], [Mati (_silent_)],
     [DANGER (Bahaya)], [$h_("air") >= 80.0$ cm], [3 LED Merah beranimasi], [Pancaran lari memancar dari tengah ($100$ ms)], [Aktif konstan $1000$ Hz],
     [SENSOR ERROR], [Sensor invalid / gema hilang], [3 LED Merah AKTIF], [Ketiga LED merah menyala diam serentak], [Mati (_silent_)],
   ),
@@ -38,12 +39,19 @@ Sistem mengimplementasikan mesin status empat kondisi (_Four-State FSM_) untuk m
   kind: table,
 ) <tbl-fsm>
 
+Logika transisi status beserta percabangan kondisi akuisisi hingga aktivasi alarm digambarkan secara sistematis pada diagram alir @gbr-flowchart-fsm.
+
+#figure(
+  image(fig-flowchart, width: 100%),
+  caption: [Diagram alir logika FSM dan siklus pengendalian sistem non-blocking],
+) <gbr-flowchart-fsm>
+
 == Manajemen Eksekusi Non-Blocking Berbasis Waktu
 
-Untuk mencegah pembekuan sistem (_system freeze_) yang kerap terjadi pada mikrokontroler pemula akibat penggunaan fungsi `delay()`, _firmware_ ESP32 dirancang menggunakan arsitektur penjadwalan multi-interval mandiri berbasis fungsi pelacak waktu milidetik `millis()`. 
+Untuk mencegah pembekuan sistem (_system freeze_) yang kerap terjadi pada mikrokontroler akibat penggunaan fungsi penahan `delay()`, _firmware_ ESP32 dirancang menggunakan arsitektur penjadwalan multi-interval mandiri berbasis fungsi pelacak waktu milidetik `millis()`. 
 
 Sistem memisahkan tugas menjadi empat siklus independen:
-1. *Akuisisi Sensor (`SENSOR_INTERVAL = 500` ms)*: Membaca pulsa ultrasonik dan memperbarui status FSM dua kali per detik.
+1. *Akuisisi Sensor (`SENSOR_INTERVAL = 100` ms)*: Membaca pulsa ultrasonik dan memperbarui status FSM sepuluh kali per detik untuk deteksi cepat lonjakan air.
 2. *Animasi Aktuator LED (`LED_ANIMATION_INTERVAL = 100` ms)*: Mengatur pola pergeseran frame tiga LED merah saat status DANGER (Frame 0/2: LED tengah pin 33 aktif; Frame 1: LED kiri pin 27 aktif; Frame 3: LED kanan pin 32 aktif).
 3. *Penyegaran Display LCD (`LCD_ANIMATION_INTERVAL = 150` ms)*: Menampilkan teks alfanumerik dan menggerakkan animasi strobo blok hitam penuh (`ASCII 255`) di sekitar kata "BAHAYA" saat kondisi kritis.
 4. *Publikasi Telemetri HTTP (`PUBLISH_INTERVAL = 2000` ms)*: Membangun paket JSON dan mengirimkan _request_ HTTP POST ke server _backend_ setiap dua detik.
@@ -53,14 +61,17 @@ Struktur ini memastikan bahwa tugas transmisi jaringan yang membutuhkan waktu be
 == Antarmuka Lokal LCD 16×2 I2C dengan Animasi Stroboskopik
 
 Modul LCD 16×2 menyajikan pembacaan status lokal secara langsung di gardu pemantau lapangan:
-- *Baris 0*: Selalu menampilkan informasi jarak numerik terukur dengan presisi satu desimal, misalnya `Jarak: 35.2 cm`.
+- *Baris 0*: Selalu menampilkan informasi jarak numerik terukur dengan presisi satu desimal, misalnya `Jarak: 40.0 cm`.
 - *Baris 1 (Kondisi Normal/Siaga)*: Menampilkan teks status sistem, misalnya `Status: AMAN` atau `Status: SIAGA`.
-- *Baris 1 (Kondisi Bahaya)*: Mengeksekusi efek strobo visual bergerak dengan merender tiga blok hitam pekat (`char kotak = 255;`) yang berpindah posisi secara ritmis:
-  - Frame 0: `■■■  BAHAYA     `
-  - Frame 1: `     BAHAYA  ■■■`
-  - Frame 2: `■■■  BAHAYA  ■■■`
-  - Frame 3: `     BAHAYA     `
+- *Baris 1 (Kondisi Bahaya)*: Mengeksekusi efek strobo visual bergerak dengan merender tiga blok hitam pekat (`char kotak = 255;`) yang berpindah posisi secara ritmis di samping kata "BAHAYA".
 - *Kondisi Sensor Rusak*: Menampilkan peringatan darurat `SENSOR ERROR!` pada baris pertama dan `Cek HC-SR04` pada baris kedua.
+
+Visualisasi antarmuka display LCD pada berbagai mode operasional disajikan pada @gbr-lcd-interface.
+
+#figure(
+  image(fig-lcd, width: 95%),
+  caption: [Antarmuka penampil LCD 16×2 I2C dengan rotasi halaman informasi otomatis],
+) <gbr-lcd-interface>
 
 == Protokol Telemetri HTTP POST dan Serialisasi JSON
 
@@ -69,8 +80,8 @@ Ketika pewaktu `PUBLISH_INTERVAL` tercapai, modul ESP32 secara otomatis memverif
 ```json
 {
   "deviceId": "smartflood-esp32-01",
-  "distanceCm": 35.2,
-  "status": "SAFE",
+  "distanceCm": 40.0,
+  "status": "WARNING",
   "sensorValid": true,
   "wifiConnected": true,
   "uptimeSeconds": 142
@@ -81,8 +92,18 @@ Paket data ini dikirimkan melalui permintaan `HTTP POST` ke alamat server _backe
 
 == Integrasi Dashboard Pemantauan Jarak Jauh (Digital Twin 3D)
 
-Data yang diterima oleh server Go segera dialirkan menuju _frontend_ web Next.js via protokol SSE. Pada antarmuka web, operator disajikan dengan dua instrumen utama yang ditempatkan berdampingan:
+Data yang diterima oleh server Go segera dialirkan menuju _frontend_ web Next.js via protokol SSE (_Server-Sent Events_). Pada antarmuka web, operator disajikan dengan dua instrumen utama yang ditempatkan berdampingan:
 1. *Digital Twin 3D Reservoir*: Menggunakan pustaka React Three Fiber untuk merender tabung wadah kaca transparan dengan skala metrik sentimeter fisik. Massa air dimodelkan dengan fluida volumetrik berwarna biru laut konsisten (`#0284c7`). Permukaan air dilengkapi dengan algoritma riak gelombang (_wave displacement_) matematis berbasis superposisi fungsi sinus-kosinus:
    $ z(x, y, t) = A(t) dot [sin(22 r - 3.4 t) + 0.45 cos(16 x + 2.5 t) + 0.45 sin(18 y - 2.0 t)] $
-   Amplitudo gelombang ($A(t)$) melonjak secara dinamis ketika air sedang naik atau turun drastis, kemudian meluruh secara perlahan menuju ketenangan riak alami ($0.75$ mm) ketika ketinggian air telah stabil.
-2. *Grafik Hidrograf Telemetri*: Menampilkan rekam jejak $50$ titik data fluktuasi air terakhir secara mulus dengan garis penanda ambang batas Siaga ($60%$) dan Bahaya ($80%$) untuk kemudahan analisis kecenderungan kenaikan debit air.
+   Amplitudo gelombang ($A(t)$) melonjak secara dinamis ketika air sedang naik atau turun drastis, kemudian meluruh secara perlahan menuju ketenangan riak alami ($0.75$ mm) ketika ketinggian air telah stabil. Tampilan visual Digital Twin 3D ditunjukkan pada @gbr-dashboard-3d.
+2. *Grafik Hidrograf Telemetri*: Menampilkan rekam jejak $50$ titik data fluktuasi air terakhir secara mulus dengan garis penanda ambang batas Siaga ($60$ cm) dan Bahaya ($80$ cm) untuk kemudahan analisis kecenderungan kenaikan debit air, sebagaimana ditunjukkan pada @gbr-hidrograf-chart.
+
+#figure(
+  image(fig-dashboard-3d, width: 95%),
+  caption: [Antarmuka web dashboard Digital Twin 3D dengan simulasi riak fluida volumetrik dinamis],
+) <gbr-dashboard-3d>
+
+#figure(
+  image(fig-hidrograf, width: 95%),
+  caption: [Grafik hidrograf telemetri live kenaikan air dengan ambang batas siaga dan bahaya],
+) <gbr-hidrograf-chart>
