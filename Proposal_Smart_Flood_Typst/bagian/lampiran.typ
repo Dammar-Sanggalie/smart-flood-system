@@ -1,6 +1,6 @@
 #heading(numbering: none)[Lampiran]
 
-== Lampiran A: Kode Sumber Firmware Lengkap ESP32 (Arduino C++)
+#heading(level: 2, numbering: none)[Lampiran A: Kode Firmware ESP32 (Arduino C++)]
 
 Berikut adalah kode sumber program tertanam (_embedded firmware_) yang telah berhasil dikompilasi, diunggah, dan diverifikasi kinerjanya pada perangkat keras fisik ESP32:
 
@@ -272,7 +272,7 @@ void loop() {
 }
 ```
 
-== Lampiran B: Contoh Respons Server Backend dan Payload Telemetri
+#heading(level: 2, numbering: none)[Lampiran B: Contoh Respons Server Backend dan Payload Telemetri]
 
 Data yang dipublikasikan oleh ESP32 setiap 2 detik diterima oleh server Go dan menghasilkan respons status `200 OK` atau `201 Created` dengan contoh log serial:
 

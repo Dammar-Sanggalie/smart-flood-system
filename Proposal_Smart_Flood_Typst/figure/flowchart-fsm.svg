@@ -146,7 +146,7 @@
       STATUS: SAFE (AMAN)
     </text>
     <text x="95" y="44" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#065F46" text-anchor="middle">
-      Tinggi Air &lt; 60 cm
+      Tinggi Air &lt; 50 cm
     </text>
     <text x="14" y="63" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#047857">• LED Hijau : ON (GPIO 25)</text>
     <text x="14" y="79" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#047857">• LED Lain : OFF</text>
@@ -162,7 +162,7 @@
       STATUS: WARNING (SIAGA)
     </text>
     <text x="100" y="44" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="bold" fill="#92400E" text-anchor="middle">
-      60 cm ≤ Tinggi Air &lt; 80 cm
+      50 cm ≤ Tinggi Air &lt; 80 cm
     </text>
     <text x="14" y="63" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#92400E">• LED Kuning : ON (GPIO 26)</text>
     <text x="14" y="79" font-family="'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#92400E">• LED Hijau &amp; Merah : OFF</text>
@@ -221,6 +221,6 @@
   <path d="M 230 620 L 22 620 L 22 249 L 263 249" fill="none" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#fsmArrowPurple)"/>
   <rect x="12" y="405" width="20" height="90" rx="4" fill="#DDD6FE" stroke="#C4B5FD" stroke-width="1"/>
   <text x="22" y="482" font-family="'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="bold" fill="#6D28D9" transform="rotate(-90, 22, 482)" text-anchor="middle">
-    LOOP BERIKUTNYA (100 ms)
+    LOOP BERIKUTNYA (500 ms)
   </text>
 </svg>
