@@ -3,25 +3,21 @@
 
 = Arsitektur dan Komponen IoT
 
-== Arsitektur Sistem Berlapis (Four-Tier Architecture)
+== Arsitektur Sistem Lima Tingkat (Five-Tier AI-IoT Architecture)
 
-Arsitektur sistem _Smart Flood Detection and Early Warning System_ dirancang mengacu pada standar empat lapisan arsitektur IoT (_Four-Tier IoT Architecture_), yang memisahkan tanggung jawab fungsional secara modular mulai dari persepsi fisik hingga presentasi analitik berbasis web, sebagaimana diilustrasikan pada @gbr-arsitektur.
+Arsitektur sistem _Smart Flood Early Warning System_ dirancang mengacu pada arsitektur terdistribusi lima tingkat (_Five-Tier AI-IoT Architecture_). Struktur ini memisahkan tanggung jawab fungsional secara modular mulai dari akuisisi fisik di lapangan hingga komputasi intelijen di sisi server dan aplikasi web:
 
-#figure(
-  image(fig-arsitektur, width: 100%),
-  caption: [Diagram arsitektur sistem IoT empat tingkat (Four-Tier Architecture)],
-) <gbr-arsitektur>
-
-Uraian tugas fungsional masing-masing tingkatan adalah sebagai berikut:
-1. *Lapisan Persepsi dan Aktuasi (_Perception & Actuation Layer_)*: Bertugas mengonversi parameter fisis pantulan gelombang ultrasonik menjadi sinyal listrik serta memberikan umpan balik fisik seketika kepada manusia melalui display LCD 16×2, barisan LED multi-warna, dan alarm akustik piezoelektrik berfrekuensi $1000$ Hz.
-2. *Lapisan Pemrosesan Tepi (_Edge Processing Layer_)*: Berpusat pada mikrokontroler ESP32 DevKit-C V4 yang mengeksekusi perhitungan konversi jarak ke tinggi air, memvalidasi integritas data (_threshold clamping_), mengendalikan mesin status bahaya (_Finite State Machine_), dan mengelola orkestrasi waktu secara _non-blocking_.
-3. *Lapisan Jaringan dan Transpor (_Network & Transport Layer_)*: Memanfaatkan antarmuka Wi-Fi bawaan ESP32 untuk membungkus data telemetri ke dalam format JSON berbobot ringan (_lightweight payload_) dan mentransmisikannya ke server lokal via protokol HTTP REST POST (dengan saluran cadangan failover MQTT).
-4. *Lapisan Layanan Backend (_Backend Middleware Daemon_)*: Server _backend_ berbasis bahasa pemrograman Go (Golang) bertindak sebagai _ingestion daemon_ berkecepatan tinggi yang menerima _stream_ pembacaan telemetri via REST `/api/readings`, mengarsipkan histori pembacaan ke basis data SQLite, dan menyalurkan data ke antarmuka web melalui _Server-Sent Events_ (SSE).
-5. *Lapisan Aplikasi dan Presentasi (_Application & Presentation Layer_)*: Aplikasi web frontend modern berbasis Next.js 14 menyajikan visualisasi kembar digital 3D (_Digital Twin 3D Reservoir_) dengan simulasi dinamika riak air laut secara real-time dan hidrograf telemetri interaktif.
+1. *Lapisan Persepsi dan Aktuasi Tepi (_Perception & Edge Actuation Layer_)*: Berada langsung pada pos pantau fisik, terdiri dari transduser ultrasonik HC-SR04 yang diakuisisi oleh mikrokontroler ESP32 DevKit-C V4. Lapisan ini mengeksekusi mesin status bahaya (_Finite State Machine_) lokal, menggerakkan indikator visual (5 unit LED multi-warna dengan mode strobo lari), display lokal LCD 16×2 I2C, serta alarm akustik frekuensi tinggi ($1000$ Hz) secara instan tanpa ketergantungan koneksi internet.
+2. *Lapisan Jaringan dan Transpor (_Network & Transport Layer_)*: Menggunakan konektivitas Wi-Fi IEEE 802.11 b/g/n bawaan ESP32 untuk membungkus data telemetri ke dalam format JSON berbobot ringan (_lightweight payload_) dan mentransmisikannya menuju server _backend_ via protokol HTTP REST POST (didukung saluran cadangan failover MQTT).
+3. *Lapisan Middleware dan Persistensi Data (_Middleware & Persistence Layer_)*: Server _backend_ berkinerja tinggi berbasis bahasa Go (Golang) bertindak sebagai _ingestion daemon_ pada port `8080`, memvalidasi payload telemetri masuk, menyimpannya ke basis data SQLite _time-series_, dan menyalurkan aliran data ke antarmuka web melalui protokol _Server-Sent Events_ (SSE).
+4. *Lapisan Kecerdasan Buatan (_AI Analytics & Inference Engine_)*: Layanan komputasi analitik di sisi server yang menaungi dua mesin intelijen:
+   - *Model Deep Learning LSTM*: Memproses jendela data deret waktu historis untuk memproyeksikan lintasan ketinggian air $15$–$60$ menit ke depan dan mengkalkulasi waktu menuju titik luapan (_Estimated Time to Flood_ / ETTF); serta
+   - *Agen GenAI Sitrep Advisor*: Menggunakan model bahasa besar (_Large Language Model_) untuk menyintesis angka telemetri mentah menjadi laporan situasi kebencanaan naratif otomatis yang siap dibagikan ke masyarakat.
+5. *Lapisan Presentasi dan Kembar Digital (_Presentation & 3D Digital Twin Layer_)*: Aplikasi web modern berbasis Next.js 14 yang merender kembar digital tabung reservoir kaca 3D interaktif (_React Three Fiber_) dengan dinamika riak fluida volumetrik, kurva proyeksi hidrograf masa depan, dan panel konsol asisten kebencanaan.
 
 == Spesifikasi Komponen Perangkat Keras
 
-Seluruh komponen perangkat keras yang telah diimplementasikan dan diuji pada prototipe fisik dirangkum pada @tbl-komponen-hw.
+Seluruh komponen perangkat keras yang telah diintegrasikan dan diverifikasi pada prototipe fisik dirangkum pada @tbl-komponen-hw.
 
 #figure(
   tabel(
@@ -67,27 +63,31 @@ Konfigurasi pengkabelan antara modul periferal fisik dan pin GPIO pada mikrokont
   kind: table,
 ) <tbl-pin-esp32>
 
-Untuk memberikan gambaran perkabelan sirkuit secara visual dan memudahkan verifikasi jalur pinout saat perakitan laboratorium, diagram skematik rangkaian simulasi Wokwi disajikan pada @gbr-wokwi.
+Untuk memberikan gambaran jalur perkabelan sirkuit secara visual serta dokumentasi simulasi sebelum pengujian fisik, tangkapan layar antarmuka simulasi Wokwi disajikan pada @gbr-wokwi.
 
 #figure(
-  image(fig-wokwi, width: 100%),
+  image(fig-wokwi, width: 95%),
   caption: [Diagram skematik perkabelan sirkuit pada platform simulasi Wokwi],
 ) <gbr-wokwi>
 
-== Dokumentasi Perakitan Prototipe Fisik (Hardware Assembly)
+== Dokumentasi Perakitan Prototipe Perangkat Keras Fisik
 
-Sebagai pemenuhan kriteria demonstrasi langsung (_physical prototype demo_) di depan dosen penguji pada sesi Ujian Tengah Semester (UTS), prototipe fisik telah dirakit di atas _half-size breadboard_ 400 titik kontak dengan mengintegrasikan seluruh komponen fisik yang diuji coba secara fungsional. Dokumentasi unit prototipe fisik disajikan pada @gbr-hardware-fisik.
+Sebagai pemenuhan kriteria demonstrasi langsung (_physical prototype demo_) di laboratorium di hadapan dosen penguji, seluruh komponen fisik telah dirakit di atas _breadboard_ 400 titik kontak dan diuji coba dengan wadah air simulasi setinggi 100 cm. Dokumentasi perakitan fisik disajikan pada @gbr-hardware-fisik.
 
 #figure(
-  image(fig-hardware, width: 100%),
+  placeholder-gambar(
+    label: "DOKUMENTASI FOTO PERANGKAT KERAS FISIK",
+    petunjuk: "Tempatkan foto dokumentasi prototipe fisik asli (tampak atas perakitan breadboard ESP32, sensor HC-SR04, LCD 16x2, 5 LED, buzzer, dan wadah uji) pada folder figure/",
+    file-target: "figure/foto-hardware.jpg",
+    tinggi: 7.2cm,
+  ),
   caption: [Dokumentasi perakitan unit prototipe perangkat keras fisik pendeteksi banjir],
 ) <gbr-hardware-fisik>
 
-Keberadaan diagram skematik virtual Wokwi (@gbr-wokwi) berdampingan dengan unit fisik prototipe (@gbr-hardware-fisik) membuktikan kesiapan kelompok baik secara teoritis (skema perkabelan terstandar) maupun secara empiris (alat bekerja dan siap didemonstrasikan).
+== Komponen Perangkat Lunak dan Tumpukan Teknologi (Software Stack)
 
-== Komponen Perangkat Lunak (Software Stack)
-
-Di sisi perangkat lunak, ekosistem sistem dibangun dengan arsitektur modern berkinerja tinggi:
-1. *Firmware ESP32*: Dikembangkan menggunakan Arduino C++ dengan pustaka inti `Wire.h` (antarmuka I2C bus frekuensi 100 kHz), `LiquidCrystal_I2C.h` (manajemen buffer display teks), `WiFi.h` (manajemen status jaringan nirkabel), `HTTPClient.h` (protokol transfer HTTP POST), dan `ArduinoJson.h` v6/v7 (serialisasi objek data telemetri).
-2. *Backend Server (Go)*: Layanan mikro berbobot ringan yang bertindak sebagai _ingestion daemon_ pada port `8080`, menerima _stream_ pembacaan telemetri via endpoint REST `/api/readings`, dan menyalurkan data ke antarmuka web melalui _Server-Sent Events_ (SSE).
-3. *Frontend Web Dashboard (Next.js & Three.js)*: Antarmuka pemantauan responsif pada port `3000` dengan pustaka `@react-three/fiber` dan `@react-three/drei` untuk merender kembar digital tabung kaca 3D dengan massa air biru laut transparan dan simulasi riak ombak parametrik.
+Di sisi perangkat lunak, ekosistem sistem dibangun dengan tumpukan teknologi modern berkinerja tinggi:
+1. *Firmware ESP32 (Arduino C++)*: Menggunakan pustaka `Wire.h` (I2C 100 kHz), `LiquidCrystal_I2C.h`, `WiFi.h`, `HTTPClient.h`, dan `ArduinoJson.h` v6/v7 untuk mengelola akuisisi sensor, aktuator lokal, dan serialisasi payload JSON secara non-blocking.
+2. *Backend Server (Go / Golang)*: Layanan mikro berbobot ringan sebagai _ingestion daemon_ pada port `8080`, menangani endpoint REST `/api/readings`, manajemen koneksi _Server-Sent Events_ (SSE), dan persistensi SQLite.
+3. *AI Analytics Engine (Python / ONNX)*: Modul layanan inferensi yang mengeksekusi model _Deep Learning_ LSTM untuk peramalan deret waktu dan mengintegrasikan model bahasa besar (LLM API) untuk penyusunan laporan darurat otomatis.
+4. *Frontend Web Dashboard (Next.js 14 & Three.js)*: Antarmuka pemantauan responsif pada port `3000` berbasis React 18, React Three Fiber (kembar digital tabung kaca 3D dengan riak air realistis), dan visualisasi hidrograf proyeksi prediktif.

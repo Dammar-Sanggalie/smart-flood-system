@@ -38,3 +38,47 @@
   *#judul:* \
   #isi
 ]
+
+// Komponen Bingkai Placeholder Foto Asli yang Rapi & Akademik
+#let placeholder-gambar(
+  label: "DOKUMENTASI FOTO PERANGKAT KERAS FISIK",
+  petunjuk: "Tempatkan foto dokumentasi prototipe fisik asli (tampak atas perakitan breadboard ESP32, sensor HC-SR04, LCD 16x2, 5 LED, dan wadah uji) pada direktori figure/",
+  file-target: "figure/foto-hardware.jpg",
+  tinggi: 7.2cm,
+) = block(
+  width: 100%,
+  height: tinggi,
+  stroke: (dash: "dashed", thickness: 1.2pt, paint: luma(100)),
+  fill: luma(252),
+  radius: 6pt,
+  inset: 14pt,
+)[
+  #set align(center + horizon)
+  #set par(first-line-indent: 0pt, justify: false, leading: 0.6em)
+  #block(
+    width: 36pt,
+    height: 28pt,
+    radius: 4pt,
+    stroke: 1pt + luma(120),
+    fill: luma(240),
+  )[
+    #set align(center + horizon)
+    #text(size: 13pt)[📷]
+  ]
+  #v(8pt)
+  #text(weight: "bold", size: 11pt, fill: luma(30))[#label] \
+  #v(5pt)
+  #text(size: 9.5pt, fill: luma(80))[#petunjuk] \
+  #v(8pt)
+  #rect(
+    stroke: 0.5pt + luma(160),
+    fill: luma(255),
+    radius: 3pt,
+    inset: (x: 8pt, y: 4pt),
+  )[
+    #text(font: ("Courier New", "Menlo", "Courier"), size: 9pt, weight: "bold", fill: rgb("#0369a1"))[File target: #file-target]
+  ]
+  #v(5pt)
+  #text(size: 8pt, style: "italic", fill: luma(120))[(Apabila file foto telah tersedia di direktori di atas, sistem dapat langsung merender foto asli Anda)]
+]
+

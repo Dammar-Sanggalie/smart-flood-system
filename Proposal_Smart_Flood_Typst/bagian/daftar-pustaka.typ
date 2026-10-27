@@ -19,3 +19,9 @@
 [8] R. Cabello (Mr.doob) et al., _Three.js JavaScript 3D Library Documentation_, 2024. [Daring]. Tersedia: https://threejs.org.
 
 [9] B. Benoit, _ArduinoJson: Efficient JSON serialization and parsing for embedded C++_, Version 7, 2024. [Daring]. Tersedia: https://arduinojson.org.
+
+[10] S. Hochreiter and J. Schmidhuber, "Long Short-Term Memory," _Neural Computation_, vol. 9, no. 8, pp. 1735–1780, 1997.
+
+[11] F. Kratzert, D. Klotz, C. Brenner, K. Schulz, and M. Herrnegger, "Rainfall–runoff modelling using Long Short-Term Memory (LSTM) networks," _Hydrology and Earth System Sciences_, vol. 22, no. 11, pp. 6005–6022, 2018.
+
+[12] J. Achiam et al., "GPT-4 Technical Report," _arXiv preprint arXiv:2303.08774_, 2023.

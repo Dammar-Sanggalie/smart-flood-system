@@ -1,10 +1,4 @@
-// Path aset gambar proposal proyek IoT
+// Path aset gambar proposal proyek IoT (Hanya aset otentik & esensial)
 #let fig-logo = "/figure/logo-unesa.png"
-#let fig-arsitektur = "/figure/arsitektur-sistem.svg"
 #let fig-wokwi = "/figure/wokwi-simulation.png"
-#let fig-wokwi-vector = "/figure/rangkaian-wokwi.svg"
-#let fig-hardware = "/figure/placeholder-hardware-fisik.svg"
-#let fig-flowchart = "/figure/flowchart-fsm.svg"
-#let fig-lcd = "/figure/lcd-16x2.svg"
-#let fig-dashboard-3d = "/figure/dashboard-3d-twin.png"
-#let fig-hidrograf = "/figure/hidrograf-chart.png"
+#let fig-dashboard = "/figure/dashboard-3d-twin.png"
