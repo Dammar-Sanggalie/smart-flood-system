@@ -70,16 +70,12 @@ Untuk memberikan gambaran jalur perkabelan sirkuit secara visual serta dokumenta
   caption: [Diagram skematik perkabelan sirkuit pada platform simulasi Wokwi],
 ) <gbr-wokwi>
 
+#pagebreak()
 === Dokumentasi Perakitan Prototipe Perangkat Keras Fisik
 Sebagai pemenuhan kriteria demonstrasi langsung (_physical prototype demo_) di laboratorium di hadapan dosen penguji, seluruh komponen fisik telah dirakit di atas _breadboard_ 400 titik kontak dan diuji coba dengan wadah air simulasi setinggi 100 cm. Dokumentasi perakitan fisik disajikan pada @gbr-hardware-fisik.
 
 #figure(
-  placeholder-gambar(
-    label: "DOKUMENTASI FOTO PERANGKAT KERAS FISIK",
-    petunjuk: "Tempatkan foto dokumentasi prototipe fisik asli (tampak atas perakitan breadboard ESP32, sensor HC-SR04, LCD 16x2, 5 LED, buzzer, dan wadah uji) pada folder figure/",
-    file-target: "figure/foto-hardware.jpg",
-    tinggi: 7.2cm,
-  ),
+  image(fig-hardware, width: 78%),
   caption: [Dokumentasi perakitan unit prototipe perangkat keras fisik pendeteksi banjir],
 ) <gbr-hardware-fisik>
 
