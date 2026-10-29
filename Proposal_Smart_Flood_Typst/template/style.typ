@@ -88,12 +88,12 @@
   show raw.where(block: true): set par(first-line-indent: 0pt, justify: false)
 
   // Pengaturan Daftar Isi, Daftar Gambar, dan Daftar Tabel
-  show outline: set par(first-line-indent: 0pt, justify: false, leading: 0.7em)
+  show outline: set par(first-line-indent: 0pt, justify: false, leading: 0.52em)
   show outline.entry: set text(weight: "regular")
   show outline.entry: it => {
     set text(weight: "regular")
     if it.element.func() == heading and it.element.level == 1 {
-      block(above: 0.8em)[#upper(it)]
+      block(above: 0.5em)[#upper(it)]
     } else {
       it
     }

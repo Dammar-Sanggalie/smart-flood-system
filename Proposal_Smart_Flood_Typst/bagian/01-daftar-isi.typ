@@ -1,10 +1,10 @@
 #heading(numbering: none, outlined: false)[DAFTAR ISI]
-#outline(title: none, depth: 3)
+#outline(title: none, depth: 2)
 
-#v(1cm)
+#pagebreak()
 #heading(numbering: none)[DAFTAR GAMBAR]
 #outline(title: none, target: figure.where(kind: image))
 
-#v(1cm)
+#v(1.2cm)
 #heading(numbering: none)[DAFTAR TABEL]
 #outline(title: none, target: figure.where(kind: table))

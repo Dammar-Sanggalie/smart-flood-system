@@ -5,15 +5,13 @@
 
 == Kerangka Alur Kerja Sistem (Five-Tier AI-IoT Architecture)
 
-Perancangan arsitektur sistem _Smart Flood Early Warning System_ disusun mengacu pada arsitektur terdistribusi lima tingkat (_Five-Tier AI-IoT Architecture_). Pendekatan modular ini memisahkan tanggung jawab fungsional secara tegas mulai dari akuisisi fisik di lapangan hingga komputasi intelijen di sisi server dan aplikasi web:
+Arsitektur sistem _Smart Flood Early Warning System_ dirancang mengacu pada arsitektur terdistribusi lima tingkat (_Five-Tier AI-IoT Architecture_) secara modular:
 
-1. *Lapisan Persepsi dan Aktuasi Tepi (_Perception & Edge Actuation Layer_)*: Berada langsung pada pos pantau fisik, terdiri dari transduser ultrasonik HC-SR04 yang diakuisisi oleh mikrokontroler ESP32 DevKit-C V4. Lapisan ini mengeksekusi mesin status bahaya (_Finite State Machine_) lokal, menggerakkan indikator visual (5 unit LED multi-warna dengan mode strobo lari), display lokal LCD 16×2 I2C, serta alarm akustik frekuensi tinggi ($1000$ Hz) secara instan tanpa ketergantungan koneksi internet.
-2. *Lapisan Jaringan dan Transpor (_Network & Transport Layer_)*: Menggunakan konektivitas Wi-Fi IEEE 802.11 b/g/n bawaan ESP32 untuk membungkus data telemetri ke dalam format JSON berbobot ringan (_lightweight payload_) dan mentransmisikannya menuju server _backend_ via protokol HTTP REST POST (didukung saluran cadangan failover MQTT).
-3. *Lapisan Middleware dan Persistensi Data (_Middleware & Persistence Layer_)*: Server _backend_ berkinerja tinggi berbasis bahasa Go (Golang) bertindak sebagai _ingestion daemon_ pada port `8080`, memvalidasi payload telemetri masuk, menyimpannya ke basis data SQLite _time-series_, dan menyalurkan aliran data ke antarmuka web melalui protokol _Server-Sent Events_ (SSE).
-4. *Lapisan Kecerdasan Buatan (_AI Analytics & Inference Engine_)*: Layanan komputasi analitik di sisi server yang menaungi dua mesin intelijen:
-   - *Model Deep Learning LSTM*: Memproses jendela data deret waktu historis untuk memproyeksikan lintasan ketinggian air $15$–$60$ menit ke depan dan mengkalkulasi waktu menuju titik luapan (_Estimated Time to Flood_ / ETTF); serta
-   - *Agen GenAI Sitrep Advisor*: Menggunakan model bahasa besar (_Large Language Model_) untuk menyintesis angka telemetri mentah menjadi laporan situasi kebencanaan naratif otomatis yang siap dibagikan ke masyarakat.
-5. *Lapisan Presentasi dan Kembar Digital (_Presentation & 3D Digital Twin Layer_)*: Aplikasi web modern berbasis Next.js 14 yang merender kembar digital tabung reservoir kaca 3D interaktif (_React Three Fiber_) dengan dinamika riak fluida volumetrik, kurva proyeksi hidrograf masa depan, dan panel konsol asisten kebencanaan.
+1. *Lapisan Persepsi dan Aktuasi Tepi (_Perception & Edge Actuation Layer_)*: Sensor ultrasonik HC-SR04 dan ESP32 DevKit-C V4 pada gardu pantau fisik mengeksekusi mesin status bahaya (_Finite State Machine_) lokal, menggerakkan indikator visual 5 LED strobo, penampil LCD 16×2 I2C, dan buzzer akustik $1000$ Hz secara instan dan otonom tanpa tergantung koneksi internet.
+2. *Lapisan Jaringan dan Transpor (_Network & Transport Layer_)*: Konektivitas Wi-Fi IEEE 802.11 b/g/n bawaan ESP32 membungkus telemetri ke dalam format payload JSON berbobot ringan menuju server _backend_ melalui protokol HTTP REST POST.
+3. *Lapisan Middleware dan Persistensi Data (_Middleware & Persistence Layer_)*: Server _backend_ Go (_Golang_) pada port `8080` memvalidasi paket masuk, menyimpannya ke basis data SQLite _time-series_, dan menyalurkan aliran data ke antarmuka web via _Server-Sent Events_ (SSE).
+4. *Lapisan Kecerdasan Buatan (_AI Analytics & Inference Engine_)*: Layanan komputasi server yang mengeksekusi model _Deep Learning_ LSTM untuk memproyeksikan lintasan elevasi air $15$–$60$ menit ke depan (menghitung laju kenaikan $d h / d t$ dan estimasi waktu luap ETTF) serta agen _GenAI Sitrep Advisor_ berbasis LLM penyusun laporan situasi kebencanaan naratif berstandar BNPB/BPBD.
+5. *Lapisan Presentasi dan Kembar Digital (_Presentation & 3D Digital Twin Layer_)*: Aplikasi web modern Next.js 14 yang merender kembar digital tabung kaca 3D interaktif (_React Three Fiber_) dengan riak fluida volumetrik realistis, kurva proyeksi hidrograf, dan konsol asisten AI.
 
 == Perancangan Perangkat Keras Fisik
 
@@ -43,39 +41,42 @@ Seluruh komponen perangkat keras yang telah diintegrasikan dan diverifikasi pada
 Konfigurasi pengkabelan antara modul periferal fisik dan pin GPIO pada mikrokontroler ESP32 disusun secara presisi untuk menjamin integritas sinyal dan menghindari konflik bus komunikasi I2C, sebagaimana dirangkum pada @tbl-pin-esp32.
 
 #figure(
-  tabel(
-    (1fr, 1fr, 0.9fr, 1.5fr),
-    ("Periferal / Modul", "Pin Komponen", "GPIO ESP32", "Keterangan Rangkaian Fisik"),
-    [Sensor HC-SR04], [TRIG], [GPIO 5], [Keluaran digital pemicu pulsa 10 $mu$s],
-    [Sensor HC-SR04], [ECHO], [GPIO 18], [Masukan digital pembacaan durasi pulsa pantulan],
-    [Sensor HC-SR04], [VCC, GND], [5V, GND], [Terhubung ke rel daya 5V dan rel ground],
-    [Display LCD 16×2], [SDA], [GPIO 21], [Jalur data serial bus I2C (Wire library)],
-    [Display LCD 16×2], [SCL], [GPIO 22], [Jalur sinyal clock serial bus I2C],
-    [Display LCD 16×2], [VCC, GND], [5V, GND], [Tersambung ke rel daya 5V dan ground],
-    [LED Hijau (SAFE)], [Anoda (+)], [GPIO 25], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
-    [LED Kuning (WARN)], [Anoda (+)], [GPIO 26], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
-    [LED Merah 1 (Kiri)], [Anoda (+)], [GPIO 27], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
-    [LED Merah 2 (Tengah)], [Anoda (+)], [GPIO 33], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
-    [LED Merah 3 (Kanan)], [Anoda (+)], [GPIO 32], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
-    [Buzzer Piezoelektrik], [Positif (+)], [GPIO 14], [Sinyal nada audio PWM 1000 Hz, kaki (-) ke GND],
-  ),
+  {
+    set text(size: 9.5pt)
+    set table(inset: 4pt)
+    tabel(
+      (1fr, 0.9fr, 0.9fr, 1.6fr),
+      ("Periferal / Modul", "Pin Komponen", "GPIO ESP32", "Keterangan Rangkaian Fisik"),
+      [Sensor HC-SR04], [TRIG], [GPIO 5], [Keluaran digital pemicu pulsa 10 $mu$s],
+      [Sensor HC-SR04], [ECHO], [GPIO 18], [Masukan digital pembacaan durasi pulsa pantulan],
+      [Sensor HC-SR04], [VCC, GND], [5V, GND], [Terhubung ke rel daya 5V dan rel ground],
+      [Display LCD 16×2], [SDA], [GPIO 21], [Jalur data serial bus I2C (Wire library)],
+      [Display LCD 16×2], [SCL], [GPIO 22], [Jalur sinyal clock serial bus I2C],
+      [Display LCD 16×2], [VCC, GND], [5V, GND], [Tersambung ke rel daya 5V dan ground],
+      [LED Hijau (SAFE)], [Anoda (+)], [GPIO 25], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
+      [LED Kuning (WARN)], [Anoda (+)], [GPIO 26], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
+      [LED Merah 1 (Kiri)], [Anoda (+)], [GPIO 27], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
+      [LED Merah 2 (Tengah)], [Anoda (+)], [GPIO 33], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
+      [LED Merah 3 (Kanan)], [Anoda (+)], [GPIO 32], [Katoda (-) terhubung resistor 220 $Omega$ ke GND],
+      [Buzzer Piezoelektrik], [Positif (+)], [GPIO 14], [Sinyal nada audio PWM 1000 Hz, kaki (-) ke GND],
+    )
+  },
   caption: [Pemetaan pin GPIO mikrokontroler ESP32 pada sirkuit fisik],
   kind: table,
 ) <tbl-pin-esp32>
 
-Untuk memberikan gambaran jalur perkabelan sirkuit secara visual serta dokumentasi simulasi sebelum pengujian fisik, tangkapan layar antarmuka simulasi Wokwi disajikan pada @gbr-wokwi.
+Untuk memberikan gambaran jalur perkabelan sirkuit secara visual sebelum pengujian fisik, tangkapan layar simulasi Wokwi disajikan pada @gbr-wokwi.
 
 #figure(
-  image(fig-wokwi, width: 95%),
+  image(fig-wokwi, width: 80%),
   caption: [Diagram skematik perkabelan sirkuit pada platform simulasi Wokwi],
 ) <gbr-wokwi>
 
-#pagebreak()
 === Dokumentasi Perakitan Prototipe Perangkat Keras Fisik
 Sebagai pemenuhan kriteria demonstrasi langsung (_physical prototype demo_) di laboratorium di hadapan dosen penguji, seluruh komponen fisik telah dirakit di atas _breadboard_ 400 titik kontak dan diuji coba dengan wadah air simulasi setinggi 100 cm. Dokumentasi perakitan fisik disajikan pada @gbr-hardware-fisik.
 
 #figure(
-  image(fig-hardware, width: 78%),
+  image(fig-hardware, width: 75%),
   caption: [Dokumentasi perakitan unit prototipe perangkat keras fisik pendeteksi banjir],
 ) <gbr-hardware-fisik>
 
