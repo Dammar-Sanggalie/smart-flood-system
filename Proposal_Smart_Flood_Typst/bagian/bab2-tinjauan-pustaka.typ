@@ -75,7 +75,7 @@ $ o_t = sigma(W_o dot [h_(t-1), x_t] + b_o) $ <eq-lstm-output>
 
 $ h_t = o_t dot tanh(C_t) $ <eq-lstm-hidden>
 
-Dalam domain hidrologi, model dilatih menggunakan deret waktu historis ketinggian air sepanjang $N = 30$ sampel ($X_t = [h_(t-N+1), dots, h_t]$) untuk memproyeksikan nilai masa depan pada horizon $15$, $30$, dan $60$ menit ($\hat{h}_{t+15}, \hat{h}_{t+30}, \hat{h}_{t+60}$). Dari lintasan peramalan tersebut, laju kenaikan air dihitung melalui turunan numerik:
+Dalam domain hidrologi, model dilatih menggunakan deret waktu historis ketinggian air sepanjang $N = 30$ sampel ($X_t = [h_(t-N+1), dots, h_t]$) untuk memproyeksikan nilai masa depan pada horizon $15$, $30$, dan $60$ menit ($hat(h)_(t+15), hat(h)_(t+30), hat(h)_(t+60)$). Dari lintasan peramalan tersebut, laju kenaikan air dihitung melalui turunan numerik:
 
 $ frac(d h, d t) = frac(hat(h)_(t + Delta t) - h_t, Delta t) quad ["cm/menit"] $ <eq-laju-air>
 

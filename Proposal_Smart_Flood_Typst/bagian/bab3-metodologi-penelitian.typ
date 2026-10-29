@@ -125,7 +125,7 @@ Paket data ini dikirimkan melalui permintaan `HTTP POST` ke alamat server _backe
 
 Mesin peramalan deret waktu pada peladen dibangun dengan arsitektur _stacked LSTM_ sebanyak 64 sel memori. Alur pemodelan dirancang melalui tahapan:
 1. *Pembentukan Jendela Geser (Sliding Window)*: Mengonversi deret telemetri ketinggian air menjadi matriks masukan $X_t = [h_(t-N+1), dots, h_t]$ dengan $N = 30$ titik historis ($15$ menit pengamatan).
-2. *Inferensi Multi-Horizon*: Menghasilkan proyeksi lintasan elevasi air pada horizon $15$ menit ($\hat{h}_{t+15}$), $30$ menit ($\hat{h}_{t+30}$), dan $60$ menit ($\hat{h}_{t+60}$).
+2. *Inferensi Multi-Horizon*: Menghasilkan proyeksi lintasan elevasi air pada horizon $15$ menit ($hat(h)_(t+15)$), $30$ menit ($hat(h)_(t+30)$), dan $60$ menit ($hat(h)_(t+60)$).
 3. *Kalkulasi Laju Dinamika Air dan ETTF*: Menghitung turunan kenaikan air $d h / d t$ dan waktu luap (*Estimated Time to Flood* / ETTF) menuju batas kritis $80.0$ cm.
 4. *Pita Ketidakpastian*: Memproyeksikan pita interval kepercayaan 95% ($hat(h) plus.minus 1.96 dot sigma$) pada kurva hidrograf masa depan.
 
