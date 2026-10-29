@@ -1,8 +1,10 @@
-#heading(numbering: none, outlined: false)[Daftar Isi]
+#heading(numbering: none, outlined: false)[DAFTAR ISI]
 #outline(title: none, depth: 3)
 
-#heading(numbering: none)[Daftar Gambar]
+#v(1cm)
+#heading(numbering: none)[DAFTAR GAMBAR]
 #outline(title: none, target: figure.where(kind: image))
 
-#heading(numbering: none)[Daftar Tabel]
+#v(1cm)
+#heading(numbering: none)[DAFTAR TABEL]
 #outline(title: none, target: figure.where(kind: table))
